@@ -100,7 +100,7 @@
                     <div style="font-size:.72rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Attachment</div>
                     <a href="{{ asset('storage/' . $academicNotice->attachment) }}" target="_blank"
                        style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:#f0faf4;border:1.5px solid #38a169;border-radius:8px;color:#38a169;font-size:.82rem;font-weight:600;text-decoration:none">
-                        📎 View Attachment
+                        <x-icon name="paperclip" /> View Attachment
                     </a>
                 </div>
             @endif
@@ -117,7 +117,7 @@
                         @method('PATCH')
                         <button type="submit"
                                 style="padding:8px 18px;background:#38a169;color:#fff;border:none;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap">
-                            ✅ Approve & Publish
+                            <x-icon name="check-circle" /> Approve & Publish
                         </button>
                     </form>
                 </div>
@@ -134,7 +134,7 @@
                     @method('DELETE')
                     <button type="submit"
                             style="padding:7px 16px;background:#e53e3e;color:#fff;border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer">
-                        🗑 Delete Notice
+                        <x-icon name="trash" /> Delete Notice
                     </button>
                 </form>
             </div>

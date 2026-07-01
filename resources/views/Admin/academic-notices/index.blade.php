@@ -42,7 +42,7 @@
                     </td>
                     <td>
                         <a href="{{ route('admin.academic-notices.show', $notice) }}"
-                           style="color:#8b1c2c;font-size:1.1rem">👁</a>
+                           style="color:#8b1c2c;font-size:1.1rem"><x-icon name="eye" /></a>
                     </td>
                 </tr>
             @empty
@@ -98,7 +98,7 @@
                         <label id="type-academic" onclick="selectType('academic')"
                                style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;border:2px solid #8b1c2c;border-radius:10px;cursor:pointer;background:#fff8f8;text-align:center">
                             <input type="radio" name="type" value="academic" checked style="display:none">
-                            <span style="width:36px;height:36px;border-radius:50%;background:#8b1c2c;display:flex;align-items:center;justify-content:center;font-size:1.1rem">🎓</span>
+                            <span style="width:36px;height:36px;border-radius:50%;background:#8b1c2c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.1rem"><x-icon name="graduation-cap" /></span>
                             <span style="font-size:.8rem;font-weight:700;color:#8b1c2c">Academic</span>
                             <span style="font-size:.65rem;color:#999">Class, exam, grade notices</span>
                         </label>
@@ -106,7 +106,7 @@
                         <label id="type-office" onclick="selectType('office')"
                                style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;border:2px solid #e8ddd5;border-radius:10px;cursor:pointer;background:#fff;text-align:center">
                             <input type="radio" name="type" value="office" style="display:none">
-                            <span style="width:36px;height:36px;border-radius:50%;background:#e8ddd5;display:flex;align-items:center;justify-content:center;font-size:1.1rem">🏢</span>
+                            <span style="width:36px;height:36px;border-radius:50%;background:#e8ddd5;color:#8b1c2c;display:flex;align-items:center;justify-content:center;font-size:1.1rem"><x-icon name="building" /></span>
                             <span style="font-size:.8rem;font-weight:700;color:#555">Office notice</span>
                             <span style="font-size:.65rem;color:#999">Admin & office communication</span>
                         </label>
@@ -114,7 +114,7 @@
                         <label id="type-memo" onclick="selectType('memo')"
                                style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;border:2px solid #e8ddd5;border-radius:10px;cursor:pointer;background:#fff;text-align:center">
                             <input type="radio" name="type" value="memo" style="display:none">
-                            <span style="width:36px;height:36px;border-radius:50%;background:#e8ddd5;display:flex;align-items:center;justify-content:center;font-size:1.1rem">📋</span>
+                            <span style="width:36px;height:36px;border-radius:50%;background:#e8ddd5;color:#8b1c2c;display:flex;align-items:center;justify-content:center;font-size:1.1rem"><x-icon name="clipboard" /></span>
                             <span style="font-size:.8rem;font-weight:700;color:#555">Memo / circular</span>
                             <span style="font-size:.65rem;color:#999">Formal school memos</span>
                         </label>
@@ -194,10 +194,9 @@
                     <label style="font-size:.72rem;font-weight:700;color:#333;display:block;margin-bottom:6px">Content</label>
                     <div style="border:1.5px solid #38a169;border-radius:8px;overflow:hidden;margin-bottom:16px">
                         <div style="background:#f0faf4;padding:6px 10px;display:flex;gap:4px;border-bottom:1px solid #c6e9d4;flex-wrap:wrap">
-                            @foreach(['B','I','U','≡','🔗','📎','🖼','≣','⬅','⬆','➡','↩','↪'] as $t)
+                            @foreach([['B','Bold'],['I','Italic'],['U','Underline'],['align-left','Align'],['link','Link'],['paperclip','Attachment'],['image','Image'],['list','List'],['arrow-left','Outdent'],['arrow-up','Move up'],['arrow-right','Indent'],['undo','Undo'],['redo','Redo']] as $t)
                                 <button type="button"
-                                        style="background:none;border:none;cursor:pointer;font-size:.8rem;font-weight:700;padding:3px 6px;border-radius:4px;color:#333"
-                                        onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='none'">{{ $t }}</button>
+                                        class="toolbar-btn" title="{{ $t[1] }}" aria-label="{{ $t[1] }}">@if(in_array($t[0], ['B','I','U'])){{ $t[0] }}@else<x-icon name="{{ $t[0] }}" />@endif</button>
                             @endforeach
                         </div>
                         <textarea name="content" id="contentArea" rows="6"
@@ -213,7 +212,7 @@
                         Attachments (optional)
                     </div>
                     <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed #38a169;border-radius:8px;padding:20px;cursor:pointer;background:#f0faf4;gap:6px;margin-bottom:8px">
-                        <span style="font-size:1.4rem">📤</span>
+                        <span style="font-size:1.4rem"><x-icon name="upload" /></span>
                         <span style="font-size:.8rem;font-weight:600;color:#38a169">Drag &amp; drop or click to upload</span>
                         <span style="font-size:.7rem;color:#888">PDF, DOCX, XLSX, JPG, PNG · MAX 10MB per file</span>
                         <input type="file" name="attachment" id="attachmentInput" multiple accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png" style="display:none" onchange="showFiles(this)">
@@ -262,7 +261,7 @@
                         </button>
                         <button type="submit" name="action" value="submit"
                                 style="margin-left:auto;padding:9px 20px;background:#8b1c2c;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
-                            📣 Submit for approval
+                            <x-icon name="megaphone" /> Submit for approval
                         </button>
                     </div>
                 </div>
@@ -327,13 +326,13 @@
                 label.style.background = '#fdf0f1';
                 label.style.borderColor = '#8b1c2c';
                 label.style.color = '#8b1c2c';
-                label.insertAdjacentHTML('afterbegin','<span style="color:#38a169;font-size:.8rem">✓ </span>');
+                label.insertAdjacentHTML('afterbegin','<span class="tag-check" style="color:#38a169;display:inline-flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg></span>');
             } else {
                 label.style.background = '#fff';
                 label.style.borderColor = '#d9b8bc';
                 label.style.color = '#333';
-                const check = label.querySelector('span');
-                if (check && check.textContent === '✓ ') check.remove();
+                const check = label.querySelector('.tag-check');
+                if (check) check.remove();
             }
         }
 
@@ -347,7 +346,7 @@
             const list = document.getElementById('fileList');
             list.innerHTML = '';
             Array.from(input.files).forEach(f => {
-                list.innerHTML += `<span style="background:#f0faf4;border:1px solid #38a169;border-radius:20px;padding:4px 10px;font-size:.72rem;color:#155724">📄 ${f.name} ✕</span>`;
+                list.innerHTML += `<span style="background:#f0faf4;border:1px solid #38a169;border-radius:20px;padding:4px 10px;font-size:.72rem;color:#155724"><x-icon name="file" /> ${f.name} <x-icon name="x" /></span>`;
             });
         }
 

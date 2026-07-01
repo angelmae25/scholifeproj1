@@ -5,7 +5,7 @@
     {{-- Success message --}}
     @if(session('success'))
         <div style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;font-weight:600">
-            ✅ {{ session('success') }}
+            <x-icon name="check-circle" /> {{ session('success') }}
         </div>
     @endif
 
@@ -52,7 +52,7 @@
                     }}">{{ ucfirst($event->status) }}</span>
                     </td>
                     <td>
-                        <a href="{{ route('admin.events.show', $event) }}" style="color:#8b1c2c;font-size:1.1rem">👁</a>
+                        <a href="{{ route('admin.events.show', $event) }}" class="icon-button" title="View" aria-label="View"><x-icon name="eye" /></a>
                     </td>
                 </tr>
             @empty
@@ -72,7 +72,7 @@
                 <button onclick="closeModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999">→</button>
             </div>
 
-            <form method="POST" action="{{ route('admin.events.store') }}">
+            <form method="POST" action="{{ route('admin.events.store') }}" enctype="multipart/form-data">
                 @csrf
 
                 {{-- Event Name --}}
@@ -126,6 +126,17 @@
                 <textarea name="description" rows="4" placeholder="Describe the event, activities, and what participants can expect..."
                           style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:10px 14px;font-size:.85rem;outline:none;resize:vertical;font-family:inherit;margin-bottom:14px"></textarea>
 
+                {{-- Event Image --}}
+                <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:8px">Event Photo</label>
+                <label style="display:flex;align-items:center;justify-content:center;min-height:150px;border:2px dashed #38a169;border-radius:10px;background:#f0faf4;cursor:pointer;margin-bottom:14px;overflow:hidden;position:relative">
+                    <img id="eventImagePreview" src="" style="display:none;width:100%;height:180px;object-fit:cover">
+                    <span id="eventImagePlaceholder" style="display:flex;flex-direction:column;align-items:center;gap:8px;color:#2f855a;font-size:.82rem;font-weight:700">
+                        <x-icon name="image" size="28" />
+                        Click to upload event photo
+                    </span>
+                    <input type="file" name="image" accept="image/*" style="display:none" onchange="previewEventImage(this)">
+                </label>
+
                 {{-- Max attendees, RSVP deadline, Points --}}
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
                     <div>
@@ -166,7 +177,7 @@
                     </button>
                     <button type="submit"
                             style="padding:9px 20px;background:#8b1c2c;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
-                        📅 Create event
+                        <x-icon name="calendar" /> Create event
                     </button>
                 </div>
             </form>
@@ -185,6 +196,17 @@
         document.getElementById('eventModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
+        function previewEventImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('eventImagePreview').src = e.target.result;
+                    document.getElementById('eventImagePreview').style.display = 'block';
+                    document.getElementById('eventImagePlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
 
 @endsection

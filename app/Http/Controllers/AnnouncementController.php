@@ -5,6 +5,7 @@ use App\Models\Announcement;
 use App\Helpers\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class AnnouncementController extends Controller
 {
@@ -24,9 +25,14 @@ class AnnouncementController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title'    => 'required|string|max:255',
-            'content'  => 'required|string',
-            'audience' => 'required|string',
+            'title'        => ['required', 'string', 'max:255'],
+            'content'      => ['required', 'string', 'max:5000'],
+            'audience'     => ['required', Rule::in(['All Users', 'Students', 'Professors', 'Offices', 'Org Officers'])],
+            'category'     => ['nullable', Rule::in(['General', 'Academic', 'Event', 'Emergency', 'Scholarship'])],
+            'action'       => ['nullable', Rule::in(['draft', 'publish'])],
+            'publish_type' => ['nullable', Rule::in(['now', 'scheduled'])],
+            'scheduled_at' => ['nullable', 'required_if:publish_type,scheduled', 'date', 'after:now'],
+            'attachment'   => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png', 'max:10240'],
         ]);
 
         // Determine status

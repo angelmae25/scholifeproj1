@@ -64,13 +64,31 @@
 
             {{-- Attachment --}}
             @if($announcement->attachment)
+                @php
+                    $attachmentUrl = asset('storage/' . $announcement->attachment);
+                    $attachmentExtension = strtolower(pathinfo($announcement->attachment, PATHINFO_EXTENSION));
+                    $isImageAttachment = in_array($attachmentExtension, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                @endphp
                 <div style="margin-bottom:24px">
                     <div style="font-size:.72rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Attachment</div>
-                    <a href="{{ asset('storage/' . $announcement->attachment) }}"
-                       target="_blank"
-                       style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:#f0faf4;border:1.5px solid #38a169;border-radius:8px;color:#38a169;font-size:.82rem;font-weight:600;text-decoration:none">
-                        📎 View Attachment
-                    </a>
+                    @if($isImageAttachment)
+                        <div style="background:#fff;border:1.5px solid #f0e8e8;border-radius:10px;padding:10px">
+                            <img src="{{ $attachmentUrl }}"
+                                 alt="Announcement image"
+                                 style="width:100%;max-height:420px;object-fit:contain;border-radius:8px;background:#f8f1f1">
+                        </div>
+                        <a href="{{ $attachmentUrl }}"
+                           target="_blank"
+                           style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;color:#38a169;font-size:.82rem;font-weight:700;text-decoration:none">
+                            <x-icon name="image" /> Open full image
+                        </a>
+                    @else
+                        <a href="{{ $attachmentUrl }}"
+                           target="_blank"
+                           style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:#f0faf4;border:1.5px solid #38a169;border-radius:8px;color:#38a169;font-size:.82rem;font-weight:600;text-decoration:none">
+                            <x-icon name="paperclip" /> View Attachment
+                        </a>
+                    @endif
                 </div>
             @endif
 
@@ -86,7 +104,7 @@
                     @method('DELETE')
                     <button type="submit"
                             style="padding:7px 16px;background:#e53e3e;color:#fff;border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer">
-                        🗑 Delete
+                        <x-icon name="trash" /> Delete
                     </button>
                 </form>
             </div>

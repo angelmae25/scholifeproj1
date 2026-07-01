@@ -10,7 +10,7 @@
 
     @if(session('success'))
         <div style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;font-weight:600">
-            ✅ {{ session('success') }}
+            <x-icon name="check-circle" /> {{ session('success') }}
         </div>
     @endif
     <div class="panel">
@@ -41,7 +41,7 @@
                     <td><span class="badge {{ $a->status==='live'?'badge-green':'badge-yellow' }}">{{ ucfirst($a->status) }}</span></td>
                     <td>{{ number_format($a->views) }}</td>
                     <td>
-                        <a href="{{ route('admin.announcements.show', $a) }}" style="color:#8b1c2c;font-size:1.1rem">👁</a>
+                        <a href="{{ route('admin.announcements.show', $a) }}" class="icon-button" title="View" aria-label="View"><x-icon name="eye" /></a>
                     </td>
                 </tr>
             @empty
@@ -98,11 +98,9 @@
                 <div style="border:1.5px solid #38a169;border-radius:8px;overflow:hidden;margin-bottom:14px">
                     {{-- Toolbar --}}
                     <div style="background:#f0faf4;padding:6px 10px;display:flex;gap:6px;border-bottom:1px solid #c6e9d4">
-                        @foreach(['B','I','U','≡','🔗','📎','🖼'] as $tool)
-                            <button type="button" onclick="formatText('{{ $tool }}')"
-                                    style="background:none;border:none;cursor:pointer;font-size:.85rem;font-weight:700;padding:3px 7px;border-radius:4px;color:#333;transition:background .15s"
-                                    onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='none'">
-                                {{ $tool }}
+                        @foreach([['B','Bold'],['I','Italic'],['U','Underline'],['align-left','Align'],['link','Link'],['paperclip','Attachment'],['image','Image']] as $tool)
+                            <button type="button" onclick="formatText('{{ $tool[0] }}')" class="toolbar-btn" title="{{ $tool[1] }}" aria-label="{{ $tool[1] }}">
+                                @if(in_array($tool[0], ['B','I','U'])){{ $tool[0] }}@else<x-icon name="{{ $tool[0] }}" />@endif
                             </button>
                         @endforeach
                     </div>
@@ -116,7 +114,7 @@
                     <div>
                         <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px">Attachment (Optional)</label>
                         <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed #38a169;border-radius:8px;padding:18px;cursor:pointer;background:#f0faf4;gap:6px">
-                            <span style="font-size:1.4rem">📤</span>
+                            <span style="font-size:1.4rem"><x-icon name="upload" /></span>
                             <span style="font-size:.75rem;color:#555">Click to upload file or image</span>
                             <input type="file" name="attachment" style="display:none">
                         </label>
@@ -154,7 +152,7 @@
                     </button>
                     <button type="submit" name="action" value="publish"
                             style="margin-left:auto;padding:9px 20px;background:#8b1c2c;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
-                        📣 Publish announcement
+                        <x-icon name="megaphone" /> Publish announcement
                     </button>
                 </div>
             </form>

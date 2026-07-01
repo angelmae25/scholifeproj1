@@ -5,6 +5,7 @@ use App\Models\AcademicNotice;
 use App\Helpers\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class AcademicNoticeController extends Controller
 {
@@ -22,10 +23,18 @@ class AcademicNoticeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title'      => 'required|string|max:255',
-            'type'       => 'required|string',
-            'department' => 'required|string',
-            'content'    => 'required|string',
+            'title'              => ['required', 'string', 'max:255'],
+            'type'               => ['required', Rule::in(['academic', 'office', 'memo'])],
+            'department'         => ['required', 'string', 'max:255'],
+            'audience'           => ['nullable', 'string', 'max:255'],
+            'content'            => ['required', 'string', 'max:5000'],
+            'action'             => ['nullable', Rule::in(['draft', 'submit'])],
+            'publish_preference' => ['nullable', Rule::in(['after_approval', 'scheduled', 'draft'])],
+            'scheduled_at'       => ['nullable', 'date', 'after:now'],
+            'expires_at'         => ['nullable', 'date', 'after:now'],
+            'tags'               => ['nullable', 'array'],
+            'tags.*'             => ['string', 'max:50'],
+            'attachment'         => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png', 'max:10240'],
         ]);
 
         $status = $request->action === 'draft' ? 'draft' : 'pending';
@@ -67,5 +76,21 @@ class AcademicNoticeController extends Controller
         LogActivity::log('DELETE', 'Academic Notices', 'Deleted notice: ' . $title);
         return redirect()->route('admin.academic-notices')
             ->with('success', 'Notice deleted successfully!');
+    }
+
+    public function approve(AcademicNotice $academicNotice)
+    {
+        if ($academicNotice->status !== 'pending') {
+            return back()->with('error', 'Only pending notices can be approved.');
+        }
+
+        $academicNotice->update([
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        LogActivity::log('UPDATE', 'Academic Notices', 'Approved notice: ' . $academicNotice->title);
+
+        return back()->with('success', 'Notice approved and published!');
     }
 }

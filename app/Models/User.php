@@ -12,15 +12,21 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'nickname',
         'email',
         'password',
         'avatar',
         'role',
         'department',
         'student_id',
+        'phone_number',
+        'date_of_birth',
+        'gender',
+        'address',
+        'year_level',
         'points',
         'status',
-        'last_active_at'
+        'last_active_at',
     ];
 
     protected $hidden = [
@@ -31,10 +37,6 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
         'last_active_at' => 'datetime',
+        'date_of_birth' => 'date',
     ];
-
-    public function pointTransactions()
-    {
-        return $this->hasMany(PointTransaction::class);
-    }
 }

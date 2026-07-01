@@ -142,10 +142,15 @@
             border-radius: 0 2px 2px 0;
         }
 
+        .ui-icon {
+            display: inline-block;
+            vertical-align: -0.15em;
+            flex-shrink: 0;
+        }
+
         .nav-icon {
-            font-size: 1rem;
             width: 20px;
-            text-align: center;
+            height: 20px;
             flex-shrink: 0;
         }
 
@@ -277,7 +282,10 @@
             cursor: pointer;
             border: 1.5px solid #8b1c2c;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             line-height: 1.4;
         }
         .btn-primary { background: #8b1c2c; color: #fff; }
@@ -319,6 +327,39 @@
             border: 1px solid #f5c6cb; border-radius: 8px;
             padding: 12px 16px; margin-bottom: 16px; font-size: .85rem; font-weight: 600;
         }
+        .alert-success, .alert-error { display: flex; align-items: center; gap: 8px; }
+        .icon-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            color: #8b1c2c;
+            text-decoration: none;
+            transition: background .15s, color .15s;
+        }
+        .icon-button:hover { background: #fdf0f1; color: #6e1522; }
+        .toolbar-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: .85rem;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 4px;
+            color: #333;
+            transition: background .15s;
+        }
+        .toolbar-btn:hover { background: #d1fae5; }
+        .rank-gold { color: #f0a500; }
+        .rank-silver { color: #8a8f98; }
+        .rank-bronze { color: #b36b2c; }
 
         @media (max-width: 768px) {
             .two-col { grid-template-columns: 1fr; }
@@ -327,7 +368,10 @@
 </head>
 <body>
 
-@php $admin = Auth::guard('admin')->user(); @endphp
+@php
+    $admin = Auth::guard('admin')->user();
+    $adminAvatarUrl = $admin && $admin->avatar ? asset('storage/'.$admin->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($admin->name).'&background=8b1c2c&color=fff';
+@endphp
 
 {{-- Overlay --}}
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -338,7 +382,7 @@
     <div class="sidebar-header">
         <a href="{{ route('admin.admin-accounts.show', $admin->id) }}" onclick="closeSidebar()">
             <div class="avatar" style="cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-                <img src="https://ui-avatars.com/api/?name={{ urlencode($admin->name) }}&background=8b1c2c&color=fff" alt="avatar">
+                <img src="{{ $adminAvatarUrl }}" alt="avatar">
             </div>
         </a>
     </div>
@@ -358,7 +402,7 @@
         <a href="{{ route('admin.dashboard') }}"
            class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">🏠</span> Dashboard
+            <x-icon name="home" class="nav-icon" /> Dashboard
         </a>
     @endif
 
@@ -366,7 +410,7 @@
         <a href="{{ route('admin.analytics') }}"
            class="nav-item {{ request()->routeIs('admin.analytics') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">📊</span> Analytics
+            <x-icon name="chart" class="nav-icon" /> Analytics
         </a>
     @endif
 
@@ -379,7 +423,7 @@
         <a href="{{ route('admin.users') }}"
            class="nav-item {{ request()->routeIs('admin.users') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">👥</span> Users
+            <x-icon name="users" class="nav-icon" /> Users
         </a>
     @endif
 
@@ -387,7 +431,7 @@
         <a href="{{ route('admin.announcements') }}"
            class="nav-item {{ request()->routeIs('admin.announcements') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">📢</span> Announcements
+            <x-icon name="megaphone" class="nav-icon" /> Announcements
         </a>
     @endif
 
@@ -395,7 +439,7 @@
         <a href="{{ route('admin.events') }}"
            class="nav-item {{ request()->routeIs('admin.events') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">📅</span> Events
+            <x-icon name="calendar" class="nav-icon" /> Events
         </a>
     @endif
 
@@ -403,7 +447,7 @@
         <a href="{{ route('admin.organizations') }}"
            class="nav-item {{ request()->routeIs('admin.organizations') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">🏛</span> Organizations
+            <x-icon name="building" class="nav-icon" /> Organizations
         </a>
     @endif
 
@@ -411,7 +455,7 @@
         <a href="{{ route('admin.admin-accounts') }}"
            class="nav-item {{ request()->routeIs('admin.admin-accounts') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">🛡</span> Admin Accounts
+            <x-icon name="shield" class="nav-icon" /> Admin Accounts
         </a>
     @endif
 
@@ -421,7 +465,7 @@
         <a href="{{ route('admin.reports') }}"
            class="nav-item {{ request()->routeIs('admin.reports') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">🚩</span> Reports
+            <x-icon name="flag" class="nav-icon" /> Reports
         </a>
     @endif
 
@@ -434,7 +478,7 @@
         <a href="{{ route('admin.academic-notices') }}"
            class="nav-item {{ request()->routeIs('admin.academic-notices') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">📋</span> Academic Notices
+            <x-icon name="clipboard" class="nav-icon" /> Academic Notices
         </a>
     @endif
 
@@ -442,7 +486,7 @@
         <a href="{{ route('admin.points') }}"
            class="nav-item {{ request()->routeIs('admin.points') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">🏆</span> Points System
+            <x-icon name="trophy" class="nav-icon" /> Points System
         </a>
     @endif
 
@@ -452,7 +496,7 @@
         <a href="{{ route('admin.logs') }}"
            class="nav-item {{ request()->routeIs('admin.logs') ? 'active' : '' }}"
            onclick="closeSidebar()">
-            <span class="nav-icon">📝</span> Activity Logs
+            <x-icon name="pencil" class="nav-icon" /> Activity Logs
         </a>
     @endif
 
@@ -461,7 +505,7 @@
         <form method="POST" action="{{ route('admin.logout') }}">
             @csrf
             <button type="submit" class="logout-btn">
-                <span>⏏</span> LOG OUT
+                <x-icon name="logout" /> LOG OUT
             </button>
         </form>
     </div>
@@ -484,11 +528,11 @@
 
     <div class="content">
         @if(session('success'))
-            <div class="alert-success">✅ {{ session('success') }}</div>
+            <div class="alert-success"><x-icon name="check-circle" /> {{ session('success') }}</div>
         @endif
 
         @if(session('error'))
-            <div class="alert-error">❌ {{ session('error') }}</div>
+            <div class="alert-error"><x-icon name="x-circle" /> {{ session('error') }}</div>
         @endif
 
         @yield('content')
@@ -515,3 +559,4 @@
 
 </body>
 </html>
+

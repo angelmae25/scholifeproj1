@@ -40,8 +40,9 @@ class PointsController extends Controller
     public function storeRule(Request $request)
     {
         $request->validate([
-            'name'   => 'required|string|max:255',
-            'points' => 'required|integer|min:1',
+            'name'        => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'points'      => ['required', 'integer', 'min:1', 'max:100000'],
         ]);
 
         DB::table('point_rules')->insert([

@@ -30,11 +30,11 @@
                     {{-- Rank --}}
                     <div style="width:28px;text-align:center;flex-shrink:0">
                         @if($i === 0)
-                            <span style="font-size:1.1rem">🥇</span>
+                            <span style="font-size:1.1rem"><x-icon name="medal" class="rank-gold" /></span>
                         @elseif($i === 1)
-                            <span style="font-size:1.1rem">🥈</span>
+                            <span style="font-size:1.1rem"><x-icon name="medal" class="rank-silver" /></span>
                         @elseif($i === 2)
-                            <span style="font-size:1.1rem">🥉</span>
+                            <span style="font-size:1.1rem"><x-icon name="medal" class="rank-bronze" /></span>
                         @else
                             <span style="font-size:.85rem;font-weight:700;color:#777">{{ $i + 1 }}</span>
                         @endif
@@ -89,7 +89,7 @@
         <div style="background:#fff;border-radius:14px;width:420px;max-width:95vw;padding:28px 32px;box-shadow:0 8px 40px rgba(0,0,0,.2)">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
                 <h2 style="font-size:1.1rem;font-weight:800;color:#8b1c2c">Add Point Rule</h2>
-                <button type="button" onclick="closeRuleModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999">✕</button>
+                <button type="button" onclick="closeRuleModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999"><x-icon name="x" /></button>
             </div>
             <form method="POST" action="{{ route('admin.points.rules.store') }}">
                 @csrf
@@ -112,7 +112,7 @@
                     </button>
                     <button type="submit"
                             style="padding:9px 20px;background:#8b1c2c;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer">
-                        ✅ Add Rule
+                        <x-icon name="check-circle" /> Add Rule
                     </button>
                 </div>
             </form>

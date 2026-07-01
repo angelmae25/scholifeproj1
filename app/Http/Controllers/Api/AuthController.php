@@ -14,11 +14,10 @@ class AuthController extends Controller
     {
         $request->validate([
             'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email',
-            'password'   => 'required|string|min:6|confirmed',
-            'student_id' => 'nullable|string',
-            'department' => 'nullable|string',
-            'role'       => 'nullable|in:student,professor,office,org_officer',
+            'email'      => 'required|email|max:255|unique:users,email',
+            'password'   => 'required|string|min:8|confirmed',
+            'student_id' => 'nullable|string|max:50',
+            'department' => 'nullable|string|max:255',
         ]);
 
         $user = User::create([
@@ -27,7 +26,7 @@ class AuthController extends Controller
             'password'    => Hash::make($request->password),
             'student_id'  => $request->student_id,
             'department'  => $request->department,
-            'role'        => $request->role ?? 'student',
+            'role'        => 'student',
             'status'      => 'active',
             'last_active_at' => now(),
         ]);
@@ -39,7 +38,7 @@ class AuthController extends Controller
             'user_id'     => $user->id,
             'action'      => 'REGISTER',
             'module'      => 'Auth',
-            'description' => 'New user registered: ' . $user->name . ' (' . $user->role . ')',
+            'description' => 'New user registered: ' . $user->name . ' (student)',
             'ip_address'  => $request->ip(),
             'device_info' => $request->header('User-Agent'),
             'created_at'  => now(),
@@ -57,7 +56,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'email'    => 'required|email',
-            'password' => 'required',
+            'password' => 'required|string',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -121,6 +120,12 @@ class AuthController extends Controller
 
     public function updateProfile(Request $request)
     {
+        $request->validate([
+            'name'       => 'sometimes|required|string|max:255',
+            'department' => 'nullable|string|max:255',
+            'student_id' => 'nullable|string|max:50',
+        ]);
+
         $user = $request->user();
         $user->update($request->only('name','department','student_id'));
         return response()->json(['success' => true, 'user' => $user]);
@@ -128,7 +133,10 @@ class AuthController extends Controller
 
     public function saveDeviceToken(Request $request)
     {
-        $request->validate(['token' => 'required|string']);
+        $request->validate([
+            'token'    => 'required|string|max:500',
+            'platform' => 'nullable|in:android,ios,web',
+        ]);
 
         DB::table('device_tokens')->updateOrInsert(
             ['user_id' => $request->user()->id],

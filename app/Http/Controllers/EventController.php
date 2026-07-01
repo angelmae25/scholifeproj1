@@ -5,6 +5,8 @@ use App\Models\Event;
 use App\Helpers\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class EventController extends Controller
 {
@@ -26,39 +28,57 @@ class EventController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'title'      => 'required|string|max:255',
-            'organizer'  => 'required|string|max:255',
-            'event_date' => 'required|date',
-            'type'       => 'required|string',
+        $validated = $request->validate([
+            'title'          => ['required', 'string', 'max:255'],
+            'organizer'      => ['required', 'string', 'max:255'],
+            'event_date'     => ['required', 'date'],
+            'event_time'     => ['nullable', 'date_format:H:i'],
+            'end_date'       => ['nullable', 'date', 'after_or_equal:event_date'],
+            'end_time'       => ['nullable', 'date_format:H:i'],
+            'location'       => ['nullable', 'string', 'max:255'],
+            'description'    => ['nullable', 'string', 'max:5000'],
+            'type'           => ['required', Rule::in(['on_campus', 'academic', 'organization', 'online'])],
+            'max_attendees'  => ['nullable', 'integer', 'min:1', 'max:100000'],
+            'rsvp_deadline'  => ['nullable', 'date', 'before_or_equal:event_date'],
+            'points_awarded' => ['nullable', 'integer', 'min:0', 'max:100000'],
+            'image'          => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('events', 'public');
+        }
+
         Event::create([
-            'title'            => $request->title,
-            'description'      => $request->description,
-            'organizer'        => $request->organizer,
-            'event_date'       => $request->event_date,
-            'event_time'       => $request->event_time,
-            'end_date'         => $request->end_date,
-            'end_time'         => $request->end_time,
-            'location'         => $request->location,
-            'type'             => $request->type,
+            'title'            => $validated['title'],
+            'description'      => $validated['description'] ?? null,
+            'organizer'        => $validated['organizer'],
+            'event_date'       => $validated['event_date'],
+            'event_time'       => $validated['event_time'] ?? null,
+            'end_date'         => $validated['end_date'] ?? null,
+            'end_time'         => $validated['end_time'] ?? null,
+            'location'         => $validated['location'] ?? null,
+            'type'             => $validated['type'],
             'status'           => 'upcoming',
             'rsvp_count'       => 0,
             'attendance_count' => 0,
             'reminders_sent'   => 0,
-            'max_attendees'    => $request->max_attendees,
-            'rsvp_deadline'    => $request->rsvp_deadline,
-            'points_awarded'   => $request->points_awarded ?? 0,
+            'max_attendees'    => $validated['max_attendees'] ?? null,
+            'rsvp_deadline'    => $validated['rsvp_deadline'] ?? null,
+            'points_awarded'   => $validated['points_awarded'] ?? 0,
             'remind_1day'      => $request->has('remind_1day')  ? 1 : 0,
             'remind_1hour'     => $request->has('remind_1hour') ? 1 : 0,
+            'image'            => $imagePath,
             'admin_id'         => Auth::guard('admin')->id(),
+            'organization_id'  => null,
+            'user_id'          => null,
+            'created_by_type'  => 'admin',
         ]);
 
         LogActivity::log(
             'CREATE',
             'Events',
-            'Created event: ' . $request->title
+            'Created event: ' . $validated['title']
         );
 
         return redirect()->route('admin.events')
@@ -73,6 +93,9 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         $title = $event->title;
+        if ($event->image) {
+            Storage::disk('public')->delete($event->image);
+        }
         $event->delete();
 
         LogActivity::log('DELETE', 'Events', 'Deleted event: ' . $title);

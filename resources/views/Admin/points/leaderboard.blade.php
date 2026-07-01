@@ -34,19 +34,19 @@
                     <div style="font-size:.78rem;font-weight:800;color:#1a1a1a">{{ $users[1]->name }}</div>
                     <div style="font-size:.68rem;color:#999;margin-bottom:4px">{{ $users[1]->department }}</div>
                     <div style="background:#c0c0c0;color:#fff;border-radius:8px;padding:6px;font-size:.8rem;font-weight:800">
-                        🥈 {{ number_format($users[1]->points) }} pts
+                        <x-icon name="medal" class="rank-silver" /> {{ number_format($users[1]->points) }} pts
                     </div>
                 </div>
 
                 {{-- 1st place --}}
                 <div style="text-align:center;flex:1;transform:translateY(-12px)">
-                    <div style="font-size:1.3rem;margin-bottom:4px">👑</div>
+                    <div style="font-size:1.3rem;margin-bottom:4px"><x-icon name="crown" /></div>
                     <img src="https://ui-avatars.com/api/?name={{ urlencode($users[0]->name) }}&size=64&background=8b1c2c&color=fff"
                          style="width:64px;height:64px;border-radius:50%;border:3px solid #f0a500;margin-bottom:6px">
                     <div style="font-size:.85rem;font-weight:800;color:#1a1a1a">{{ $users[0]->name }}</div>
                     <div style="font-size:.7rem;color:#999;margin-bottom:4px">{{ $users[0]->department }}</div>
                     <div style="background:#8b1c2c;color:#fff;border-radius:8px;padding:8px;font-size:.85rem;font-weight:800">
-                        🥇 {{ number_format($users[0]->points) }} pts
+                        <x-icon name="medal" class="rank-gold" /> {{ number_format($users[0]->points) }} pts
                     </div>
                 </div>
 
@@ -57,7 +57,7 @@
                     <div style="font-size:.78rem;font-weight:800;color:#1a1a1a">{{ $users[2]->name }}</div>
                     <div style="font-size:.68rem;color:#999;margin-bottom:4px">{{ $users[2]->department }}</div>
                     <div style="background:#cd7f32;color:#fff;border-radius:8px;padding:6px;font-size:.8rem;font-weight:800">
-                        🥉 {{ number_format($users[2]->points) }} pts
+                        <x-icon name="medal" class="rank-bronze" /> {{ number_format($users[2]->points) }} pts
                     </div>
                 </div>
 
@@ -79,9 +79,9 @@
             @forelse($users as $i => $user)
                 <tr style="{{ $i < 3 ? 'background:#fffbf0' : '' }}">
                     <td style="text-align:center;font-weight:800;font-size:.9rem">
-                        @if($i === 0) 🥇
-                        @elseif($i === 1) 🥈
-                        @elseif($i === 2) 🥉
+                        @if($i === 0) <x-icon name="medal" class="rank-gold" />
+                        @elseif($i === 1) <x-icon name="medal" class="rank-silver" />
+                        @elseif($i === 2) <x-icon name="medal" class="rank-bronze" />
                         @else <span style="color:#777">{{ $users->firstItem() + $i }}</span>
                         @endif
                     </td>

@@ -4,7 +4,7 @@
 
     @if(session('success'))
         <div style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;font-weight:600">
-            ✅ {{ session('success') }}
+            <x-icon name="check-circle" /> {{ session('success') }}
         </div>
     @endif
 
@@ -22,7 +22,7 @@
                 @if($organization->logo)
                     <img src="{{ asset('storage/'.$organization->logo) }}" style="width:100%;height:100%;object-fit:cover">
                 @else
-                    <span style="font-size:2rem">🏛</span>
+                    <span style="font-size:2rem"><x-icon name="building" /></span>
                 @endif
             </div>
 
@@ -44,18 +44,18 @@
                 {{-- Meta --}}
                 <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:.78rem;color:#777">
                     @if($organization->department)
-                        <span>🏫 {{ $organization->department }}</span>
+                        <span><x-icon name="school" /> {{ $organization->department }}</span>
                     @endif
                     @if($organization->year_founded)
-                        <span>📅 Founded {{ $organization->year_founded }}</span>
+                        <span><x-icon name="calendar" /> Founded {{ $organization->year_founded }}</span>
                     @endif
                     @if($organization->adviser)
-                        <span>👤 Adviser: <strong>{{ $organization->adviser }}</strong></span>
+                        <span><x-icon name="user" /> Adviser: <strong>{{ $organization->adviser }}</strong></span>
                     @endif
                     @if($organization->co_adviser)
-                        <span>👤 Co-Adviser: <strong>{{ $organization->co_adviser }}</strong></span>
+                        <span><x-icon name="user" /> Co-Adviser: <strong>{{ $organization->co_adviser }}</strong></span>
                     @endif
-                    <span>👥 {{ $organization->member_count }} Members</span>
+                    <span><x-icon name="users" /> {{ $organization->member_count }} Members</span>
                 </div>
             </div>
 
@@ -79,13 +79,25 @@
     <div class="panel">
         <div style="font-size:1.05rem;font-weight:800;color:#8b1c2c;margin-bottom:16px">Assign Student Role</div>
 
+        @php
+            $roleLabels = [
+                'president' => 'President',
+                'vice_president_internal' => 'VP Internal',
+                'vice_president_external' => 'VP External',
+                'secretary' => 'Secretary',
+                'treasurer' => 'Treasurer',
+                'auditor' => 'Auditor',
+                'pio' => 'PIO',
+            ];
+        @endphp
+
         {{-- Role buttons --}}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="roleTabs">
-            @foreach(['President','Vice President','Secretary','Treasurer','Auditor'] as $role)
+            @foreach($roleLabels as $role => $label)
                 <button onclick="selectRole('{{ $role }}')"
                         id="role-{{ Str::slug($role) }}"
-                        style="padding:7px 16px;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;border:none;background:{{ $role==='President'?'#8b1c2c':'#e8ddd5' }};color:{{ $role==='President'?'#fff':'#555' }};transition:all .15s">
-                    {{ $role }}
+                        style="padding:7px 16px;border-radius:20px;font-size:.78rem;font-weight:700;cursor:pointer;border:none;background:{{ $role==='president'?'#8b1c2c':'#e8ddd5' }};color:{{ $role==='president'?'#fff':'#555' }};transition:all .15s">
+                    {{ $label }}
                 </button>
             @endforeach
         </div>
@@ -99,7 +111,7 @@
                 </label>
                 <form method="POST" action="{{ route('admin.organizations.assign', $organization) }}">
                     @csrf
-                    <input type="hidden" name="role" id="selectedRole" value="President">
+                    <input type="hidden" name="role" id="selectedRole" value="president">
                     <select name="user_id"
                             style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:10px 14px;font-size:.85rem;outline:none;margin-bottom:12px;background:#fff">
                         <option value="">-- Select a student --</option>
@@ -128,12 +140,12 @@
                             <div style="font-size:.7rem;color:#999">{{ $official->user->department ?? '' }}</div>
                         </div>
                         <span style="padding:4px 12px;background:#8b1c2c;color:#fff;border-radius:20px;font-size:.68rem;font-weight:700">
-                    {{ $official->position }}
+                    {{ $roleLabels[$official->position] ?? $official->position }}
                 </span>
                         <form method="POST" action="{{ route('admin.organizations.unassign', [$organization, $official]) }}" style="margin:0">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:.85rem" title="Remove">✕</button>
+                            <button type="submit" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:.85rem" title="Remove"><x-icon name="x" /></button>
                         </form>
                     </div>
                 @empty
@@ -143,7 +155,58 @@
 
         </div>
     </div>
+    {{-- Anonymous Organization Evaluations --}}
+    <div class="panel" style="margin-top:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+            <div>
+                <div style="font-size:1.05rem;font-weight:800;color:#8b1c2c">Evaluation Results</div>
+                <div style="font-size:.72rem;color:#888;margin-top:3px">Submitted from QR code, public link, and mobile app. Evaluator names are hidden.</div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <div style="border:1px solid #f0dfe1;border-radius:8px;padding:8px 12px;min-width:92px;background:#fff">
+                    <div style="font-size:.68rem;color:#777;font-weight:700;text-transform:uppercase">Total</div>
+                    <div style="font-size:1rem;font-weight:800;color:#111">{{ $evaluationStats['total'] ?? 0 }}</div>
+                </div>
+                <div style="border:1px solid #f0dfe1;border-radius:8px;padding:8px 12px;min-width:92px;background:#fff">
+                    <div style="font-size:.68rem;color:#777;font-weight:700;text-transform:uppercase">Avg Rating</div>
+                    <div style="font-size:1rem;font-weight:800;color:#111">{{ $evaluationStats['average_rating'] ?? 0 }}/5</div>
+                </div>
+                <div style="border:1px solid #f0dfe1;border-radius:8px;padding:8px 12px;min-width:92px;background:#fff">
+                    <div style="font-size:.68rem;color:#777;font-weight:700;text-transform:uppercase">Recommend</div>
+                    <div style="font-size:1rem;font-weight:800;color:#111">{{ $evaluationStats['recommend_yes'] ?? 0 }}</div>
+                </div>
+            </div>
+        </div>
 
+        @forelse($evaluations as $evaluation)
+            <div style="border:1px solid #f5eaea;border-radius:10px;padding:14px;margin-bottom:12px;background:#fff">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+                    <div>
+                        <div style="font-size:.86rem;font-weight:800;color:#111">Anonymous Evaluator #{{ $loop->iteration }}</div>
+                        <div style="font-size:.7rem;color:#999;margin-top:2px">Submitted {{ $evaluation->created_at->format('M d, Y h:i A') }}</div>
+                    </div>
+                    <div style="display:flex;gap:7px;flex-wrap:wrap">
+                        <span class="badge badge-yellow">Rating: {{ $evaluation->rating }}/5</span>
+                        <span class="badge badge-green">{{ ucfirst($evaluation->satisfaction) }}</span>
+                        <span class="badge badge-gray">Recommend: {{ ucfirst($evaluation->would_recommend) }}</span>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+                    @foreach($evaluation->answers as $answer)
+                        @if(! blank($answer->answer))
+                            <div style="background:#fbf8f8;border-radius:8px;padding:10px">
+                                <div style="font-size:.68rem;color:#8b1c2c;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">{{ $answer->question }}</div>
+                                <div style="font-size:.78rem;color:#333;line-height:1.45;white-space:pre-wrap">{{ $answer->answer }}</div>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+        @empty
+            <p style="color:#999;font-size:.82rem;padding:12px 0;text-align:center">No evaluations submitted yet.</p>
+        @endforelse
+    </div>
     <script>
         function selectRole(role) {
             document.getElementById('selectedRole').value = role;
@@ -151,10 +214,12 @@
                 btn.style.background = '#e8ddd5';
                 btn.style.color = '#555';
             });
-            const slug = role.toLowerCase().replace(/ /g,'-');
+            const slug = role.toLowerCase().replace(/_/g,'-').replace(/ /g,'-');
             const btn = document.getElementById('role-' + slug);
             if (btn) { btn.style.background = '#8b1c2c'; btn.style.color = '#fff'; }
         }
     </script>
 
 @endsection
+
+

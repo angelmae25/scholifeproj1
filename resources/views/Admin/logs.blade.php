@@ -31,7 +31,7 @@
 
         @if($logs->isEmpty())
             <div style="text-align:center;padding:40px;color:#999">
-                <div style="font-size:2rem;margin-bottom:8px">📋</div>
+                <div style="font-size:2rem;margin-bottom:8px"><x-icon name="clipboard" /></div>
                 <div>No activity logs yet.</div>
                 <div style="font-size:.78rem;margin-top:4px">Logs will appear here as admins use the system.</div>
             </div>

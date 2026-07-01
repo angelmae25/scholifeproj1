@@ -29,6 +29,23 @@
                 </div>
             </div>
 
+            {{-- Event Image --}}
+            @if($event->image)
+                <div style="margin-bottom:24px">
+                    <div style="font-size:.72rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Event Photo</div>
+                    <div style="background:#fff;border:1.5px solid #f0e8e8;border-radius:10px;padding:10px">
+                        <img src="{{ asset('storage/' . $event->image) }}"
+                             alt="Event photo"
+                             style="width:100%;max-height:420px;object-fit:contain;border-radius:8px;background:#f8f1f1">
+                    </div>
+                    <a href="{{ asset('storage/' . $event->image) }}"
+                       target="_blank"
+                       style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;color:#38a169;font-size:.82rem;font-weight:700;text-decoration:none">
+                        <x-icon name="image" /> Open full image
+                    </a>
+                </div>
+            @endif
+
             {{-- Meta grid --}}
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px">
                 <div style="background:#fdf8f3;border-radius:8px;padding:12px 14px">
@@ -90,7 +107,7 @@
             {{-- RSVP Deadline --}}
             @if($event->rsvp_deadline)
                 <div style="background:#fffbea;border:1.5px solid #f6e05e;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:.85rem;color:#744210">
-                    📅 <strong>RSVP Deadline:</strong> {{ $event->rsvp_deadline->format('M d, Y') }}
+                    <x-icon name="calendar" /> <strong>RSVP Deadline:</strong> {{ $event->rsvp_deadline->format('M d, Y') }}
                 </div>
             @endif
 
@@ -98,11 +115,11 @@
             <div style="margin-bottom:20px">
                 <div style="font-size:.72rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Reminders</div>
                 <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <span style="padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;background:{{ $event->remind_1day ? '#d4edda' : '#f5f5f5' }};color:{{ $event->remind_1day ? '#155724' : '#999' }}">
-                    {{ $event->remind_1day ? '✅' : '⬜' }} 1 Day Before
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;background:{{ $event->remind_1day ? '#d4edda' : '#f5f5f5' }};color:{{ $event->remind_1day ? '#155724' : '#999' }}">
+                    <x-icon name="{{ $event->remind_1day ? 'check-circle' : 'x-circle' }}" /> 1 Day Before
                 </span>
-                    <span style="padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;background:{{ $event->remind_1hour ? '#d4edda' : '#f5f5f5' }};color:{{ $event->remind_1hour ? '#155724' : '#999' }}">
-                    {{ $event->remind_1hour ? '✅' : '⬜' }} 1 Hour Before
+                    <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;background:{{ $event->remind_1hour ? '#d4edda' : '#f5f5f5' }};color:{{ $event->remind_1hour ? '#155724' : '#999' }}">
+                    <x-icon name="{{ $event->remind_1hour ? 'check-circle' : 'x-circle' }}" /> 1 Hour Before
                 </span>
                 </div>
             </div>
@@ -127,7 +144,7 @@
                     @method('DELETE')
                     <button type="submit"
                             style="padding:7px 16px;background:#e53e3e;color:#fff;border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer">
-                        🗑 Delete Event
+                        <x-icon name="trash" /> Delete Event
                     </button>
                 </form>
             </div>

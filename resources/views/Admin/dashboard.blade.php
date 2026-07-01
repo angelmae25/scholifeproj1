@@ -64,9 +64,9 @@
                     <div style="flex:1">
                         <div style="font-size:.85rem;font-weight:700">{{ $event->title }}</div>
                         <div style="font-size:.7rem;color:#888;margin-top:2px">
-                            📍 {{ $event->location ?? 'TBA' }}
+                            <x-icon name="map-pin" /> {{ $event->location ?? 'TBA' }}
                             @if($event->event_time)
-                                &nbsp;🕐 {{ \Carbon\Carbon::parse($event->event_time)->format('g:i A') }}
+                                <x-icon name="clock" /> {{ \Carbon\Carbon::parse($event->event_time)->format('g:i A') }}
                             @endif
                         </div>
                         <span class="badge badge-yellow" style="margin-top:3px;font-size:.62rem">
@@ -122,7 +122,7 @@
             @forelse($topReports as $report)
                 <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f5eaea">
                     <div style="width:40px;height:40px;border-radius:50%;background:{{ $report->priority==='high'?'#fed7d7':'#fefcbf' }};display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">
-                        {{ $report->type==='Marketplace'?'🛒':'🚩' }}
+                        @if($report->type==='Marketplace') <x-icon name="shopping-bag" /> @else <x-icon name="flag" /> @endif
                     </div>
                     <div style="flex:1">
                         <div style="font-size:.82rem;font-weight:700">{{ $report->title }}</div>

@@ -25,7 +25,11 @@ class Event extends Model
         'remind_1day',
         'remind_1hour',
         'qr_code',
+        'image',
         'admin_id',
+        'organization_id',
+        'user_id',
+        'created_by_type',
     ];
 
     protected $casts = [

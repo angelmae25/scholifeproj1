@@ -19,6 +19,9 @@ class Announcement extends Model
         'published_at',
         'scheduled_at',
         'admin_id',
+        'organization_id',
+        'user_id',
+        'created_by_type',
     ];
 
     protected $casts = [

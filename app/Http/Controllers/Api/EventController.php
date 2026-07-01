@@ -19,34 +19,53 @@ class EventController extends Controller
 
     public function show($id)
     {
-        $event = Event::findOrFail($id);
+        $event = Event::whereIn('status', ['upcoming', 'ongoing'])->findOrFail($id);
         return response()->json(['success' => true, 'data' => $event]);
     }
 
     public function rsvp(Request $request, $id)
     {
-        $event = Event::findOrFail($id);
         $userId = $request->user()->id;
 
-        $exists = DB::table('event_attendees')
-            ->where('event_id', $id)
-            ->where('user_id', $userId)
-            ->exists();
+        $result = DB::transaction(function () use ($id, $userId) {
+            $event = Event::whereIn('status', ['upcoming', 'ongoing'])
+                ->whereKey($id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($exists) {
-            return response()->json(['success' => false, 'message' => 'Already RSVPed']);
-        }
+            if ($event->rsvp_deadline && now()->greaterThan($event->rsvp_deadline)) {
+                return ['success' => false, 'message' => 'RSVP deadline has passed', 'status' => 422];
+            }
 
-        DB::table('event_attendees')->insert([
-            'event_id'   => $id,
-            'user_id'    => $userId,
-            'status'     => 'rsvp',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+            if ($event->max_attendees && $event->rsvp_count >= $event->max_attendees) {
+                return ['success' => false, 'message' => 'Event is full', 'status' => 422];
+            }
 
-        $event->increment('rsvp_count');
+            $exists = DB::table('event_attendees')
+                ->where('event_id', $id)
+                ->where('user_id', $userId)
+                ->exists();
 
-        return response()->json(['success' => true, 'message' => 'RSVP successful']);
+            if ($exists) {
+                return ['success' => false, 'message' => 'Already RSVPed', 'status' => 409];
+            }
+
+            DB::table('event_attendees')->insert([
+                'event_id'   => $id,
+                'user_id'    => $userId,
+                'status'     => 'rsvp',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $event->increment('rsvp_count');
+
+            return ['success' => true, 'message' => 'RSVP successful', 'status' => 200];
+        });
+
+        return response()->json([
+            'success' => $result['success'],
+            'message' => $result['message'],
+        ], $result['status']);
     }
 }

@@ -31,7 +31,7 @@
                     <td>
                         <a href="{{ route('admin.admin-accounts.show', $admin->id) }}"
                            style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($admin->name) }}&size=36&background=8b1c2c&color=fff"
+                            <img src="{{ $admin->avatar ? asset('storage/'.$admin->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($admin->name).'&size=36&background=8b1c2c&color=fff' }}"
                                  style="width:36px;height:36px;border-radius:50%;flex-shrink:0;border:2px solid #d9b8bc;transition:border-color .2s"
                                  onmouseover="this.style.borderColor='#8b1c2c'" onmouseout="this.style.borderColor='#d9b8bc'">
                             <div>
@@ -64,13 +64,35 @@
                         {{ $admin->last_login_at ? $admin->last_login_at->format('M d, Y h:i A') : '—' }}
                     </td>
                     <td>
-                        <form method="POST" action="{{ route('admin.admin-accounts.toggle', $admin->id) }}">
-                            @csrf
-                            <button type="submit"
-                                    style="padding:5px 12px;border:none;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;background:{{ $admin->status === 'active' ? '#fee2e2' : '#d4edda' }};color:{{ $admin->status === 'active' ? '#e53e3e' : '#155724' }}">
-                                {{ $admin->status === 'active' ? 'Disable' : 'Enable' }}
+                        @php
+                            $adminPermissionList = $admin->role === 'super_admin'
+                                ? ['dashboard','analytics','users','announcements','events','organizations','admin-accounts','reports','academic-notices','points','logs']
+                                : ($admin->permissions ?? []);
+                        @endphp
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <form method="POST" action="{{ route('admin.admin-accounts.toggle', $admin->id) }}" style="margin:0">
+                                @csrf
+                                <button type="submit"
+                                        style="padding:5px 12px;border:none;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;background:{{ $admin->status === 'active' ? '#fee2e2' : '#d4edda' }};color:{{ $admin->status === 'active' ? '#e53e3e' : '#155724' }}">
+                                    {{ $admin->status === 'active' ? 'Disable' : 'Enable' }}
+                                </button>
+                            </form>
+
+                            <button type="button"
+                                    onclick="openAdminViewModal(this)"
+                                    data-name="{{ e($admin->name) }}"
+                                    data-email="{{ e($admin->email) }}"
+                                    data-role="{{ e($admin->role) }}"
+                                    data-student-id="{{ e($admin->student_id) }}"
+                                    data-status="{{ e($admin->status) }}"
+                                    data-last-login="{{ $admin->last_login_at ? $admin->last_login_at->format('M d, Y h:i A') : 'Never' }}"
+                                    data-created-at="{{ $admin->created_at ? $admin->created_at->format('M d, Y h:i A') : '' }}"
+                                    data-permissions='@json($adminPermissionList)'
+                                    style="padding:6px 8px;background:#f5eaea;color:#8b1c2c;border:none;border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer"
+                                    title="View permissions">
+                                <x-icon name="eye" />
                             </button>
-                        </form>
+                        </div>
                     </td>
                 </tr>
             @empty
@@ -80,13 +102,59 @@
         </table>
     </div>
 
+    {{-- VIEW ADMIN PERMISSIONS MODAL --}}
+    <div id="adminViewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center">
+        <div style="width:620px;max-width:94vw;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.22);overflow:hidden">
+            <div style="background:#8b1c2c;color:#fff;padding:18px 22px;display:flex;align-items:center;justify-content:space-between">
+                <div style="font-size:1.05rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Admin Permissions</div>
+                <button type="button" onclick="closeAdminViewModal()" style="background:none;border:none;color:#fff;font-size:1.35rem;cursor:pointer;line-height:1">
+                    <x-icon name="x" />
+                </button>
+            </div>
+
+            <div style="padding:24px">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px">
+                    <img id="viewAdminAvatar" src="" style="width:76px;height:76px;border-radius:50%;object-fit:cover;background:#8b1c2c">
+                    <div>
+                        <div id="viewAdminName" style="font-size:1.25rem;font-weight:800;color:#1a1a1a"></div>
+                        <div id="viewAdminEmail" style="font-size:.82rem;color:#777;margin-top:3px"></div>
+                        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+                            <span id="viewAdminRole" class="badge badge-red"></span>
+                            <span id="viewAdminStatus" class="badge"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+                    <div style="background:#faf7f7;border:1px solid #f0dddd;border-radius:10px;padding:12px">
+                        <div style="font-size:.68rem;color:#8b1c2c;font-weight:800;text-transform:uppercase;letter-spacing:.06em">ID</div>
+                        <div id="viewAdminStudentId" style="font-size:.9rem;margin-top:4px;color:#333"></div>
+                    </div>
+                    <div style="background:#faf7f7;border:1px solid #f0dddd;border-radius:10px;padding:12px">
+                        <div style="font-size:.68rem;color:#8b1c2c;font-weight:800;text-transform:uppercase;letter-spacing:.06em">Last Login</div>
+                        <div id="viewAdminLastLogin" style="font-size:.9rem;margin-top:4px;color:#333"></div>
+                    </div>
+                    <div style="background:#faf7f7;border:1px solid #f0dddd;border-radius:10px;padding:12px;grid-column:1/-1">
+                        <div style="font-size:.68rem;color:#8b1c2c;font-weight:800;text-transform:uppercase;letter-spacing:.06em">Created At</div>
+                        <div id="viewAdminCreatedAt" style="font-size:.9rem;margin-top:4px;color:#333"></div>
+                    </div>
+                </div>
+
+                <div style="font-size:.78rem;color:#8b1c2c;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">
+                    Assigned Module Permissions
+                </div>
+                <div id="viewAdminPermissions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+            </div>
+        </div>
+    </div>
+
     {{-- CREATE ADMIN MODAL --}}
     <div id="adminModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center">
         <div style="background:#fff;border-radius:14px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:28px 32px;box-shadow:0 8px 40px rgba(0,0,0,.2)">
 
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
                 <h2 style="font-size:1.2rem;font-weight:800;color:#8b1c2c">Create Admin Account</h2>
-                <button type="button" onclick="closeModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999">✕</button>
+                <button type="button" onclick="closeModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999"><x-icon name="x" /></button>
             </div>
 
             @if($errors->any())
@@ -155,24 +223,24 @@
                     </label>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                         @foreach([
-                            ['dashboard',        '🏠', 'Dashboard'],
-                            ['analytics',        '📊', 'Analytics'],
-                            ['users',            '👥', 'Users'],
-                            ['announcements',    '📢', 'Announcements'],
-                            ['events',           '📅', 'Events'],
-                            ['organizations',    '🏛', 'Organizations'],
-                            ['admin-accounts',   '🛡', 'Admin Accounts'],
-                            ['reports',          '🚩', 'Reports'],
-                            ['academic-notices', '📋', 'Academic Notices'],
-                            ['points',           '🏆', 'Points System'],
-                            ['logs',             '📝', 'Activity Logs'],
+                            ['dashboard',        'home', 'Dashboard'],
+                            ['analytics',        'chart', 'Analytics'],
+                            ['users',            'users', 'Users'],
+                            ['announcements',    'megaphone', 'Announcements'],
+                            ['events',           'calendar', 'Events'],
+                            ['organizations',    'building', 'Organizations'],
+                            ['admin-accounts',   'shield', 'Admin Accounts'],
+                            ['reports',          'flag', 'Reports'],
+                            ['academic-notices', 'clipboard', 'Academic Notices'],
+                            ['points',           'trophy', 'Points System'],
+                            ['logs',             'pencil', 'Activity Logs'],
                         ] as $perm)
                             <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1.5px solid #f0d0d4;border-radius:8px;cursor:pointer;font-size:.8rem;color:#333;background:#fff8f8;transition:background .15s"
                                    onmouseover="this.style.background='#fdf0f1'" onmouseout="this.style.background='#fff8f8'">
                                 <input type="checkbox" name="permissions[]" value="{{ $perm[0] }}"
                                        style="accent-color:#8b1c2c;width:14px;height:14px"
                                     {{ is_array(old('permissions')) && in_array($perm[0], old('permissions')) ? 'checked' : '' }}>
-                                <span>{{ $perm[1] }} {{ $perm[2] }}</span>
+                                <span style="display:inline-flex;align-items:center;gap:6px"><x-icon name="{{ $perm[1] }}" /> {{ $perm[2] }}</span>
                             </label>
                         @endforeach
                     </div>
@@ -185,7 +253,7 @@
                     </button>
                     <button type="submit"
                             style="padding:9px 20px;background:#8b1c2c;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
-                        ✅ Create Admin
+                        <x-icon name="check-circle" /> Create Admin
                     </button>
                 </div>
             </form>
@@ -227,6 +295,71 @@
                 boxes.forEach(cb => cb.checked = false);
             }
         }
+
+        const permissionLabels = {
+            'dashboard': 'Dashboard',
+            'analytics': 'Analytics',
+            'users': 'Users',
+            'announcements': 'Announcements',
+            'events': 'Events',
+            'organizations': 'Organizations',
+            'admin-accounts': 'Admin Accounts',
+            'reports': 'Reports',
+            'academic-notices': 'Academic Notices',
+            'points': 'Points System',
+            'logs': 'Activity Logs'
+        };
+
+        function niceText(value) {
+            if (!value) return '—';
+            return value.replace(/_/g, ' ').replace(/-/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+        }
+
+        function openAdminViewModal(button) {
+            const data = button.dataset;
+            const permissions = JSON.parse(data.permissions || '[]');
+            const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'Admin')}&size=96&background=8b1c2c&color=fff`;
+
+            document.getElementById('viewAdminAvatar').src = avatar;
+            document.getElementById('viewAdminName').textContent = data.name || '—';
+            document.getElementById('viewAdminEmail').textContent = data.email || '—';
+            document.getElementById('viewAdminRole').textContent = niceText(data.role);
+            document.getElementById('viewAdminStudentId').textContent = data.studentId || '—';
+            document.getElementById('viewAdminLastLogin').textContent = data.lastLogin || 'Never';
+            document.getElementById('viewAdminCreatedAt').textContent = data.createdAt || '—';
+
+            const status = document.getElementById('viewAdminStatus');
+            status.textContent = niceText(data.status);
+            status.className = 'badge ' + (data.status === 'active' ? 'badge-green' : 'badge-red');
+
+            const container = document.getElementById('viewAdminPermissions');
+            container.innerHTML = '';
+
+            if (!permissions.length) {
+                container.innerHTML = '<div style="grid-column:1/-1;color:#999;font-size:.9rem;padding:14px;background:#faf7f7;border-radius:10px">No module permissions assigned.</div>';
+            } else {
+                Object.entries(permissionLabels).forEach(([key, label]) => {
+                    const hasPermission = permissions.includes(key);
+                    const item = document.createElement('div');
+                    item.style.cssText = `display:flex;align-items:center;justify-content:space-between;gap:8px;border-radius:10px;padding:11px 12px;font-size:.84rem;font-weight:700;border:1px solid ${hasPermission ? '#c3e6cb' : '#f0dddd'};background:${hasPermission ? '#f0faf4' : '#faf7f7'};color:${hasPermission ? '#155724' : '#999'}`;
+                    item.innerHTML = `<span>${label}</span><span>${hasPermission ? 'Allowed' : 'No Access'}</span>`;
+                    container.appendChild(item);
+                });
+            }
+
+            document.getElementById('adminViewModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAdminViewModal() {
+            document.getElementById('adminViewModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('adminViewModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAdminViewModal();
+        });
     </script>
 
 @endsection
+
