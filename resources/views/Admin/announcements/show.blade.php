@@ -17,8 +17,7 @@
                 <div style="flex:1">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
                     <span class="badge {{
-                        $announcement->status === 'live'      ? 'badge-green'  :
-                        ($announcement->status === 'scheduled' ? 'badge-yellow' : 'badge-gray')
+                        $announcement->status === 'live' ? 'badge-green' : 'badge-gray'
                     }}" style="font-size:.72rem">
                         {{ strtoupper($announcement->status) }}
                     </span>
@@ -42,12 +41,6 @@
                     <div style="font-size:.68rem;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Published</div>
                     <div style="font-size:.85rem;font-weight:700;color:#333">
                         {{ $announcement->published_at ? $announcement->published_at->format('M d, Y h:i A') : '—' }}
-                    </div>
-                </div>
-                <div style="background:#fdf8f3;border-radius:8px;padding:12px 14px">
-                    <div style="font-size:.68rem;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Scheduled</div>
-                    <div style="font-size:.85rem;font-weight:700;color:#333">
-                        {{ $announcement->scheduled_at ? $announcement->scheduled_at->format('M d, Y h:i A') : '—' }}
                     </div>
                 </div>
                 <div style="background:#fdf8f3;border-radius:8px;padding:12px 14px">
@@ -98,7 +91,8 @@
 
                 {{-- Delete form --}}
                 <form method="POST" action="{{ route('admin.announcements.destroy', $announcement) }}"
-                      onsubmit="return confirm('Are you sure you want to delete this announcement?')"
+                      data-confirm-message="Delete this announcement? This will remove it from both web and mobile."
+                      data-confirm-action="Delete"
                       style="margin-left:auto">
                     @csrf
                     @method('DELETE')

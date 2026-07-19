@@ -50,6 +50,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::middleware('admin.permission:users')->group(function () {
             Route::get('users', [UserController::class, 'index'])->name('users');
+            Route::post('users', [UserController::class, 'store'])->name('users.store');
+            Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         });
 
         Route::middleware('admin.permission:announcements')->group(function () {
@@ -62,7 +64,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::middleware('admin.permission:events')->group(function () {
             Route::get('events', [EventController::class, 'index'])->name('events');
             Route::post('events', [EventController::class, 'store'])->name('events.store');
+            Route::get('events/attendance-notifications', [EventController::class, 'attendanceNotifications'])->name('events.attendance-notifications');
             Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
+            Route::post('events/{event}/attendances/{attendance}/confirm', [EventController::class, 'confirmAttendance'])->name('events.attendances.confirm');
+            Route::patch('events/{event}', [EventController::class, 'update'])->name('events.update');
             Route::delete('events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
         });
 
@@ -87,6 +92,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('reports', [ReportController::class, 'index'])->name('reports');
             Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
             Route::get('reports/{report}/download', [ReportController::class, 'download'])->name('reports.download');
+            Route::patch('reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
         });
 
         Route::middleware('admin.permission:academic-notices')->group(function () {
@@ -101,6 +107,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('points', [PointsController::class, 'index'])->name('points');
             Route::get('points/leaderboard', [PointsController::class, 'leaderboard'])->name('points.leaderboard');
             Route::post('points/rules', [PointsController::class, 'storeRule'])->name('points.rules.store');
+            Route::patch('points/rules/{pointRule}', [PointsController::class, 'updateRule'])->name('points.rules.update');
+            Route::delete('points/rules/{pointRule}', [PointsController::class, 'destroyRule'])->name('points.rules.destroy');
         });
     });
 });

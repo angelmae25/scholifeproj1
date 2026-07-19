@@ -2,11 +2,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
-use App\Models\Announcement;
-use App\Models\Event;
-use App\Models\Organization;
-use App\Models\OrganizationEvaluation;
-use App\Models\PreLovedItem;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -47,21 +42,12 @@ class AnalyticsController extends Controller
             'total_users_sub' => '+' . number_format($newUsersThisWeek) . ' this week',
         ];
 
-        $announcementViews = $this->safeCount('announcements', fn () => (int) Announcement::sum('views'))
-            + $this->contentViewsFor(['announcement', 'announcements', 'news']);
-        $eventEngagement = $this->safeCount('events', fn () => (int) Event::sum('attendance_count'))
-            + $this->contentViewsFor(['event', 'events']);
-        $marketplaceEngagement = $this->tableCount('pre_loved_items') + $this->tableCount('pre_loved_messages');
-        $lostFoundEngagement = $this->tableCount('lost_found_items') + $this->tableCount('lost_found_claims');
-        $organizationEngagement = $this->safeCount('organization_evaluations', fn () => OrganizationEvaluation::count())
-            + $this->safeCount('organizations', fn () => Organization::count());
-
         $engagement = [
-            'Announcement' => $announcementViews,
-            'Events' => $eventEngagement,
-            'Marketplace' => $marketplaceEngagement,
-            'Lost and Found' => $lostFoundEngagement,
-            'Organization' => $organizationEngagement,
+            'News / Announcement' => $this->tableCount('announcements'),
+            'Events' => $this->tableCount('events'),
+            'Marketplace' => $this->mobileOwnedCount('pre_loved_items'),
+            'Lost and Found' => $this->mobileOwnedCount('lost_found_items'),
+            'Organization' => $this->tableCount('organizations'),
         ];
 
         $recentActivity = $this->recentActivity();
@@ -165,15 +151,17 @@ class AnalyticsController extends Controller
             ->count();
     }
 
-    private function contentViewsFor(array $types): int
+    private function mobileOwnedCount(string $table): int
     {
-        if (! Schema::hasTable('mobile_content_views') || ! Schema::hasColumn('mobile_content_views', 'content_type')) {
+        if (! Schema::hasTable($table)) {
             return 0;
         }
 
-        return DB::table('mobile_content_views')
-            ->whereIn('content_type', $types)
-            ->count();
+        if (Schema::hasColumn($table, 'user_id')) {
+            return DB::table($table)->whereNotNull('user_id')->count();
+        }
+
+        return DB::table($table)->count();
     }
 
     private function countBetween(string $table, string $column, $start, $end): int

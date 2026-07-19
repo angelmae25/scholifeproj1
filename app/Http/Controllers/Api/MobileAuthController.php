@@ -17,7 +17,7 @@ class MobileAuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'department' => 'nullable|string|max:255',
+            'department' => ['required', Rule::in(['BASD', 'CAAD', 'EAAD', 'MAAD'])],
             'student_id' => 'nullable|string|max:255',
             'date_of_birth' => 'nullable|date',
             'gender' => 'nullable|string|max:50',
@@ -39,7 +39,7 @@ class MobileAuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => $request->password,
             'role' => $role,
             'department' => $request->department,
             'student_id' => $request->student_id,
@@ -109,3 +109,4 @@ class MobileAuthController extends Controller
         ]);
     }
 }
+

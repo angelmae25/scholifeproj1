@@ -115,9 +115,47 @@
             </table>
 
             {{-- Pagination --}}
-            <div style="margin-top:16px">
-                {{ $logs->links() }}
-            </div>
+            @if($logs->hasPages())
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;flex-wrap:wrap">
+                    <div style="font-size:.75rem;color:#777">
+                        Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} logs
+                    </div>
+
+                    <div style="display:flex;align-items:center;gap:6px">
+                        @if($logs->onFirstPage())
+                            <span class="icon-button" style="opacity:.35;pointer-events:none" aria-disabled="true">
+                                <x-icon name="arrow-left" size="16" />
+                            </span>
+                        @else
+                            <a href="{{ $logs->previousPageUrl() }}" class="icon-button" title="Previous page" aria-label="Previous page">
+                                <x-icon name="arrow-left" size="16" />
+                            </a>
+                        @endif
+
+                        @foreach($logs->getUrlRange(max(1, $logs->currentPage() - 2), min($logs->lastPage(), $logs->currentPage() + 2)) as $page => $url)
+                            @if($page === $logs->currentPage())
+                                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;border-radius:6px;background:#8b1c2c;color:#fff;font-size:.78rem;font-weight:800">
+                                    {{ $page }}
+                                </span>
+                            @else
+                                <a href="{{ $url }}" style="display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;border-radius:6px;border:1px solid #f0d0d4;color:#8b1c2c;text-decoration:none;font-size:.78rem;font-weight:700">
+                                    {{ $page }}
+                                </a>
+                            @endif
+                        @endforeach
+
+                        @if($logs->hasMorePages())
+                            <a href="{{ $logs->nextPageUrl() }}" class="icon-button" title="Next page" aria-label="Next page">
+                                <x-icon name="arrow-right" size="16" />
+                            </a>
+                        @else
+                            <span class="icon-button" style="opacity:.35;pointer-events:none" aria-disabled="true">
+                                <x-icon name="arrow-right" size="16" />
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            @endif
         @endif
     </div>
 

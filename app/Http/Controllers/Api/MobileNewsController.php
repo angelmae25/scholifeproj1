@@ -74,6 +74,7 @@ class MobileNewsController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'category' => 'nullable|string|max:255',
+            'audience' => 'nullable|in:All Users,All,MAAD,EAAD,CAAD,BASD,Others',
             'image_base64' => 'nullable|string',
             'image_extension' => 'nullable|string|max:10',
         ]);
@@ -92,7 +93,7 @@ class MobileNewsController extends Controller
             'title' => $request->title,
             'content' => $request->content,
             'author' => $request->user()->name,
-            'audience' => 'All Users',
+            'audience' => $request->audience === 'All' ? 'All Users' : ($request->audience ?: 'All Users'),
             'category' => $request->category ?: 'General',
             'status' => 'live',
             'views' => 0,
@@ -224,3 +225,4 @@ class MobileNewsController extends Controller
             ->first(['id', 'name', 'acronym']);
     }
 }
+

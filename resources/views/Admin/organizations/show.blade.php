@@ -2,12 +2,6 @@
 @section('title','Organization')
 @section('content')
 
-    @if(session('success'))
-        <div style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;font-weight:600">
-            <x-icon name="check-circle" /> {{ session('success') }}
-        </div>
-    @endif
-
     {{-- Back --}}
     <a href="{{ route('admin.organizations') }}"
        style="display:inline-flex;align-items:center;gap:6px;color:#8b1c2c;font-size:.82rem;font-weight:600;text-decoration:none;margin-bottom:20px">
@@ -142,7 +136,10 @@
                         <span style="padding:4px 12px;background:#8b1c2c;color:#fff;border-radius:20px;font-size:.68rem;font-weight:700">
                     {{ $roleLabels[$official->position] ?? $official->position }}
                 </span>
-                        <form method="POST" action="{{ route('admin.organizations.unassign', [$organization, $official]) }}" style="margin:0">
+                        <form method="POST" action="{{ route('admin.organizations.unassign', [$organization, $official]) }}"
+                              data-confirm-message="Remove this official from the organization?"
+                              data-confirm-action="Remove"
+                              style="margin:0">
                             @csrf
                             @method('DELETE')
                             <button type="submit" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:.85rem" title="Remove"><x-icon name="x" /></button>

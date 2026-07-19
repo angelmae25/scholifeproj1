@@ -2,12 +2,6 @@
 @section('title','Organization')
 @section('content')
 
-    @if(session('success'))
-        <div style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;font-weight:600">
-            <x-icon name="check-circle" /> {{ session('success') }}
-        </div>
-    @endif
-
     <div class="stat-grid">
         <div class="stat-card"><div class="stat-label">Total Organization</div><div class="stat-value">{{ $stats['total'] }}</div></div>
         <div class="stat-card"><div class="stat-label">Active This Month</div><div class="stat-value">{{ $stats['active_this_month'] }}</div></div>
@@ -78,7 +72,9 @@
                             <x-icon name="pencil" />
                         </button>
                         <form method="POST" action="{{ route('admin.organizations.destroy', $org) }}"
-                              onsubmit="return confirm('Delete this organization?')" style="margin:0">
+                              data-confirm-message="Delete this organization? This will remove it from both web and mobile."
+                              data-confirm-action="Delete"
+                              style="margin:0">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
@@ -153,8 +149,14 @@
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
                     <div>
                         <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Department</label>
-                        <input type="text" name="department" placeholder="e.g. Intramural Sports"
-                               style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
+                        <select name="department" required
+                               style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none;background:#fff">
+                            <option value="">-- Select department --</option>
+                            <option value="BASD">BASD</option>
+                            <option value="CAAD">CAAD</option>
+                            <option value="EAAD">EAAD</option>
+                            <option value="MAAD">MAAD</option>
+                        </select>
                     </div>
                     <div>
                         <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Year Founded</label>
@@ -253,8 +255,14 @@
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
                     <div>
                         <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Department</label>
-                        <input id="editDepartment" type="text" name="department"
-                               style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
+                        <select id="editDepartment" name="department" required
+                                style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none;background:#fff">
+                            <option value="">-- Select department --</option>
+                            <option value="BASD">BASD</option>
+                            <option value="CAAD">CAAD</option>
+                            <option value="EAAD">EAAD</option>
+                            <option value="MAAD">MAAD</option>
+                        </select>
                     </div>
                     <div>
                         <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Year Founded</label>

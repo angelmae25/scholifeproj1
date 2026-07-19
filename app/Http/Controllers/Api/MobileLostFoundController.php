@@ -159,4 +159,54 @@ class MobileLostFoundController extends Controller
             'claim' => $claim,
         ], 201);
     }
+    public function update(Request $request, LostFoundItem $item)
+    {
+        if ((int) $item->user_id !== (int) $request->user()->id) {
+            return response()->json(['success' => false, 'message' => 'You can only edit your own post.'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $item->update([
+            'title' => $request->title,
+            'location' => $request->location,
+            'description' => $request->description,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lost and found item updated successfully.',
+            'item' => $item->fresh(),
+        ]);
+    }
+
+    public function destroy(Request $request, LostFoundItem $item)
+    {
+        if ((int) $item->user_id !== (int) $request->user()->id) {
+            return response()->json(['success' => false, 'message' => 'You can only delete your own post.'], 403);
+        }
+
+        if ($item->image) {
+            Storage::disk('public')->delete($item->image);
+        }
+
+        $item->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lost and found item deleted successfully.',
+        ]);
+    }
 }

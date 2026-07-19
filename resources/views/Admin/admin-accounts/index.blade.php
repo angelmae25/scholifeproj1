@@ -2,6 +2,8 @@
 @section('title','Admin Account')
 @section('content')
 
+@php $isSuperAdmin = Auth::guard('admin')->user()->role === 'super_admin'; @endphp
+
     <div class="stat-grid">
         <div class="stat-card"><div class="stat-label">Admin Account</div><div class="stat-value">{{ $stats['total'] }}</div></div>
         <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value">{{ $stats['active'] }}</div></div>
@@ -92,6 +94,21 @@
                                     title="View permissions">
                                 <x-icon name="eye" />
                             </button>
+
+                            @if($isSuperAdmin)
+                                <button type="button"
+                                        class="edit-permissions-btn"
+                                        data-id="{{ $admin->id }}"
+                                        data-name="{{ $admin->name }}"
+                                        data-email="{{ $admin->email }}"
+                                        data-student-id="{{ $admin->student_id ?? '' }}"
+                                        data-role="{{ $admin->role }}"
+                                        data-permissions='@json($adminPermissionList)'
+                                        style="padding:6px 8px;background:#f5eaea;color:#8b1c2c;border:none;border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer"
+                                        title="Edit permissions">
+                                    <x-icon name="pencil" size="16" />
+                                </button>
+                            @endif
                         </div>
                     </td>
                 </tr>
@@ -145,6 +162,74 @@
                 </div>
                 <div id="viewAdminPermissions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
             </div>
+        </div>
+    </div>
+
+    {{-- EDIT PERMISSIONS MODAL (super admin only) --}}
+    <div id="editPermissionsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:14px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:28px 32px;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+                <h2 style="font-size:1.2rem;font-weight:800;color:#8b1c2c">Edit Permissions</h2>
+                <button type="button" onclick="closeEditPermissionsModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999"><x-icon name="x" /></button>
+            </div>
+            <form method="POST" id="editPermissionsForm">
+                @csrf @method('PATCH')
+                <input type="hidden" name="name" id="editPermName">
+                <input type="hidden" name="email" id="editPermEmail">
+                <input type="hidden" name="student_id" id="editPermStudentId">
+
+                <div style="margin-bottom:16px">
+                    <div id="editPermAdminInfo" style="font-size:.9rem;font-weight:700;color:#1a1a1a;margin-bottom:8px"></div>
+                    <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Role</label>
+                    <select name="role" id="editPermRoleSelect" onchange="toggleEditPermPermissions()"
+                            style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
+                        <option value="admin">Admin</option>
+                        <option value="moderator">Moderator</option>
+                        <option value="super_admin">Super Admin</option>
+                    </select>
+                </div>
+
+                <div id="editPermPermissionsSection" style="margin-bottom:20px">
+                    <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:10px">
+                        Module Permissions
+                        <span style="font-weight:400;color:#999;text-transform:none;letter-spacing:0;font-size:.68rem;margin-left:6px">(Super Admin gets all automatically)</span>
+                    </label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        @foreach([
+                            ['dashboard', 'home', 'Dashboard'],
+                            ['analytics', 'chart', 'Analytics'],
+                            ['users', 'users', 'Users'],
+                            ['announcements', 'megaphone', 'Announcements'],
+                            ['events', 'calendar', 'Events'],
+                            ['organizations', 'building', 'Organizations'],
+                            ['admin-accounts', 'shield', 'Admin Accounts'],
+                            ['reports', 'flag', 'Reports'],
+                            ['academic-notices', 'clipboard', 'Academic Notices'],
+                            ['points', 'trophy', 'Points System'],
+                            ['logs', 'pencil', 'Activity Logs'],
+                        ] as $perm)
+                            <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1.5px solid #f0d0d4;border-radius:8px;cursor:pointer;font-size:.8rem;color:#333;background:#fff8f8;transition:background .15s"
+                                   onmouseover="this.style.background='#fdf0f1'" onmouseout="this.style.background='#fff8f8'">
+                                <input type="checkbox" name="permissions[]" value="{{ $perm[0] }}"
+                                       class="edit-perm-checkbox"
+                                       style="accent-color:#8b1c2c;width:14px;height:14px">
+                                <span style="display:inline-flex;align-items:center;gap:6px"><x-icon name="{{ $perm[1] }}" /> {{ $perm[2] }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:4px">
+                    <button type="button" onclick="closeEditPermissionsModal()"
+                            style="padding:9px 18px;border:1.5px solid #ccc;background:#fff;color:#666;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            style="padding:9px 20px;background:#8b1c2c;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
+                        <x-icon name="check-circle" /> Save Permissions
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -358,6 +443,57 @@
 
         document.getElementById('adminViewModal').addEventListener('click', function(e) {
             if (e.target === this) closeAdminViewModal();
+        });
+
+        var EDIT_PERM_URL = '{{ route('admin.admin-accounts.update', '_ID_') }}';
+
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.edit-permissions-btn');
+            if (!btn) return;
+            var data = btn.dataset;
+            var id = data.id;
+            var name = data.name;
+            var permissions = JSON.parse(data.permissions || '[]');
+
+            document.getElementById('editPermName').value = name;
+            document.getElementById('editPermEmail').value = data.email;
+            document.getElementById('editPermStudentId').value = data.studentId || '';
+            document.getElementById('editPermAdminInfo').textContent = 'Editing: ' + name;
+            document.getElementById('editPermissionsForm').action = EDIT_PERM_URL.replace('_ID_', id);
+
+            var roleSelect = document.getElementById('editPermRoleSelect');
+            roleSelect.value = data.role;
+
+            document.querySelectorAll('.edit-perm-checkbox').forEach(function(cb) {
+                cb.checked = permissions.indexOf(cb.value) !== -1;
+            });
+
+            toggleEditPermPermissions();
+            document.getElementById('editPermissionsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+
+        function toggleEditPermPermissions() {
+            var role = document.getElementById('editPermRoleSelect').value;
+            var section = document.getElementById('editPermPermissionsSection');
+            var boxes = section.querySelectorAll('.edit-perm-checkbox');
+            if (role === 'super_admin') {
+                section.style.opacity = '0.4';
+                section.style.pointerEvents = 'none';
+                boxes.forEach(function(cb) { cb.checked = true; });
+            } else {
+                section.style.opacity = '1';
+                section.style.pointerEvents = 'auto';
+            }
+        }
+
+        function closeEditPermissionsModal() {
+            document.getElementById('editPermissionsModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('editPermissionsModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditPermissionsModal();
         });
     </script>
 

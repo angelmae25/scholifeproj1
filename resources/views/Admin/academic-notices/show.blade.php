@@ -128,7 +128,8 @@
                 <a href="{{ route('admin.academic-notices') }}" class="btn btn-outline">← Back</a>
 
                 <form method="POST" action="{{ route('admin.academic-notices.destroy', $academicNotice) }}"
-                      onsubmit="return confirm('Are you sure you want to delete this notice?')"
+                      data-confirm-message="Delete this academic notice?"
+                      data-confirm-action="Delete"
                       style="margin-left:auto">
                     @csrf
                     @method('DELETE')

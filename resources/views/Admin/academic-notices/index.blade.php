@@ -5,7 +5,6 @@
     <div class="stat-grid">
         <div class="stat-card"><div class="stat-label">Notices Posted</div><div class="stat-value">{{ $stats['posted'] }}</div></div>
         <div class="stat-card"><div class="stat-label">Departments Active</div><div class="stat-value">{{ $stats['dept_active'] }}</div></div>
-        <div class="stat-card"><div class="stat-label">Pending Approval</div><div class="stat-value">{{ $stats['pending_approval'] }}</div></div>
     </div>
 
     <div class="panel">
@@ -20,7 +19,6 @@
                 <th>Posted By</th>
                 <th>Department</th>
                 <th>Type</th>
-                <th>Status</th>
                 <th></th>
             </tr>
             </thead>
@@ -34,19 +32,14 @@
                     <td>{{ $notice->posted_by }}</td>
                     <td>{{ $notice->department }}</td>
                     <td><span class="badge badge-red">{{ strtoupper($notice->type) }}</span></td>
-                    <td>
-                    <span class="badge {{
-                        $notice->status === 'published' ? 'badge-green' :
-                        ($notice->status === 'pending'  ? 'badge-yellow' : 'badge-gray')
-                    }}">{{ strtoupper($notice->status) }}</span>
-                    </td>
+
                     <td>
                         <a href="{{ route('admin.academic-notices.show', $notice) }}"
                            style="color:#8b1c2c;font-size:1.1rem"><x-icon name="eye" /></a>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="6" style="text-align:center;color:#999;padding:24px">No notices found.</td></tr>
+                <tr><td colspan="5" style="text-align:center;color:#999;padding:24px">No notices found.</td></tr>
             @endforelse
             </tbody>
         </table>
@@ -62,7 +55,7 @@
                 <div style="display:flex;align-items:center;justify-content:space-between">
                     <div>
                         <h2 style="font-size:1.15rem;font-weight:800;color:#8b1c2c;margin-bottom:2px">Post academic notice</h2>
-                        <p style="font-size:.75rem;color:#888">Submitted notices require admin approval before publishing</p>
+                        <p style="font-size:.75rem;color:#888">Submitted notices are published to teachers and advisers immediately</p>
                     </div>
                     <button type="button" onclick="closeModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#999">→</button>
                 </div>
@@ -150,6 +143,11 @@
                                 <option>Students only</option>
                                 <option>Faculty only</option>
                                 <option>All Users</option>
+                                <option>BASD</option>
+                                <option>MAAD</option>
+                                <option>CAAD</option>
+                                <option>EAAD</option>
+                                <option>Others</option>
                             </select>
                         </div>
                     </div>
@@ -219,49 +217,15 @@
                     </label>
                     <div id="fileList" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px"></div>
 
-                    {{-- Visibility & Scheduling --}}
-                    <div style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">
-                        Visibility &amp; Scheduling
-                    </div>
-
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-                        <div>
-                            <label style="font-size:.72rem;font-weight:700;color:#333;display:block;margin-bottom:4px">Publish preference</label>
-                            <select name="publish_preference" onchange="toggleSchedule(this)"
-                                    style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
-                                <option value="after_approval">Publish after approval</option>
-                                <option value="scheduled">Schedule for later</option>
-                                <option value="draft">Save as draft</option>
-                            </select>
-                        </div>
-                        <div id="scheduleField">
-                            <label style="font-size:.72rem;font-weight:700;color:#333;display:block;margin-bottom:4px">Scheduled date &amp; time</label>
-                            <input type="datetime-local" name="scheduled_at"
-                                   style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:8px 12px;font-size:.82rem;outline:none">
-                        </div>
-                    </div>
-
-                    {{-- Expiry --}}
-                    <div style="margin-bottom:20px">
-                        <label style="font-size:.72rem;font-weight:700;color:#333;display:block;margin-bottom:4px">Notice expiry (optional)</label>
-                        <input type="datetime-local" name="expires_at"
-                               style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.82rem;outline:none;margin-bottom:4px">
-                        <p style="font-size:.68rem;color:#888">Notice will be automatically archived after this date</p>
-                    </div>
-
                     {{-- Action buttons --}}
                     <div style="display:flex;align-items:center;gap:10px;padding-top:4px">
-                        <button type="submit" name="action" value="draft"
-                                style="padding:9px 18px;border:1.5px solid #8b1c2c;background:#fff;color:#8b1c2c;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer">
-                            Save as draft
-                        </button>
                         <button type="button" onclick="closeModal()"
                                 style="padding:9px 18px;border:1.5px solid #ccc;background:#fff;color:#666;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer">
                             Cancel
                         </button>
                         <button type="submit" name="action" value="submit"
                                 style="margin-left:auto;padding:9px 20px;background:#8b1c2c;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
-                            <x-icon name="megaphone" /> Submit for approval
+                            <x-icon name="megaphone" /> Publish notice
                         </button>
                     </div>
                 </div>
@@ -350,10 +314,9 @@
             });
         }
 
-        // Schedule toggle
-        function toggleSchedule(sel) {
-            document.getElementById('scheduleField').style.opacity = sel.value === 'scheduled' ? '1' : '0.4';
-        }
     </script>
 
 @endsection
+
+
+

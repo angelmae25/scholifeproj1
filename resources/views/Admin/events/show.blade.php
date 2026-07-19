@@ -2,7 +2,7 @@
 @section('title','Event Details')
 @section('content')
 
-    <div style="max-width:750px;margin:0 auto">
+    <div style="max-width:1120px;margin:0 auto">
 
         {{-- Back button --}}
         <a href="{{ route('admin.events') }}"
@@ -10,6 +10,7 @@
             ← Back to Events
         </a>
 
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start">
         <div class="panel">
 
             {{-- Header --}}
@@ -71,6 +72,10 @@
                     </div>
                 </div>
                 <div style="background:#fdf8f3;border-radius:8px;padding:12px 14px">
+                    <div style="font-size:.68rem;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Audience</div>
+                    <div style="font-size:.85rem;font-weight:700;color:#333">{{ $event->audience ?? 'All' }}</div>
+                </div>
+                <div style="background:#fdf8f3;border-radius:8px;padding:12px 14px">
                     <div style="font-size:.68rem;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Location</div>
                     <div style="font-size:.85rem;font-weight:700;color:#333">{{ $event->location ?? '—' }}</div>
                 </div>
@@ -78,10 +83,6 @@
 
             {{-- Stats row --}}
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px;margin-bottom:24px">
-                <div style="background:#fff8f8;border:1.5px solid #f0d0d4;border-radius:8px;padding:12px 14px;text-align:center">
-                    <div style="font-size:1.5rem;font-weight:800;color:#8b1c2c">{{ number_format($event->rsvp_count) }}</div>
-                    <div style="font-size:.7rem;color:#999;margin-top:2px">RSVPs</div>
-                </div>
                 <div style="background:#fff8f8;border:1.5px solid #f0d0d4;border-radius:8px;padding:12px 14px;text-align:center">
                     <div style="font-size:1.5rem;font-weight:800;color:#8b1c2c">{{ number_format($event->attendance_count) }}</div>
                     <div style="font-size:.7rem;color:#999;margin-top:2px">Attended</div>
@@ -95,21 +96,10 @@
                     <div style="font-size:.7rem;color:#999;margin-top:2px">Points</div>
                 </div>
                 <div style="background:#fff8f8;border:1.5px solid #f0d0d4;border-radius:8px;padding:12px 14px;text-align:center">
-                    <div style="font-size:1.5rem;font-weight:800;color:#8b1c2c">{{ $event->max_attendees ?? '∞' }}</div>
-                    <div style="font-size:.7rem;color:#999;margin-top:2px">Max Slots</div>
-                </div>
-                <div style="background:#fff8f8;border:1.5px solid #f0d0d4;border-radius:8px;padding:12px 14px;text-align:center">
                     <div style="font-size:1.5rem;font-weight:800;color:#8b1c2c">{{ number_format($event->reminders_sent) }}</div>
                     <div style="font-size:.7rem;color:#999;margin-top:2px">Reminders</div>
                 </div>
             </div>
-
-            {{-- RSVP Deadline --}}
-            @if($event->rsvp_deadline)
-                <div style="background:#fffbea;border:1.5px solid #f6e05e;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:.85rem;color:#744210">
-                    <x-icon name="calendar" /> <strong>RSVP Deadline:</strong> {{ $event->rsvp_deadline->format('M d, Y') }}
-                </div>
-            @endif
 
             {{-- Reminders --}}
             <div style="margin-bottom:20px">
@@ -138,7 +128,8 @@
 
                 {{-- Delete --}}
                 <form method="POST" action="{{ route('admin.events.destroy', $event) }}"
-                      onsubmit="return confirm('Are you sure you want to delete this event?')"
+                      data-confirm-message="Delete this event? This will remove it from both web and mobile."
+                      data-confirm-action="Delete"
                       style="margin-left:auto">
                     @csrf
                     @method('DELETE')
@@ -149,6 +140,62 @@
                 </form>
             </div>
 
+        </div>
+
+        <div class="panel" style="position:sticky;top:86px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <div>
+                    <div style="font-size:.72rem;font-weight:800;color:#8b1c2c;text-transform:uppercase;letter-spacing:.8px">Student Attendance</div>
+                    <div style="font-size:.75rem;color:#888;margin-top:2px">Confirm students who really attended.</div>
+                </div>
+                <span class="badge badge-yellow">{{ $attendances->where('status', 'pending')->count() }} Pending</span>
+            </div>
+
+            @forelse($attendances as $attendance)
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #f0e8e8">
+                    <div style="width:36px;height:36px;border-radius:50%;background:#9b1c31;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0">
+                        {{ strtoupper(substr($attendance->user->name ?? 'U', 0, 2)) }}
+                    </div>
+                    <div style="min-width:0;flex:1">
+                        <div style="font-size:.83rem;font-weight:800;color:#171717;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $attendance->user->name ?? 'Unknown student' }}</div>
+                        <div style="font-size:.7rem;color:#888">{{ $attendance->user->department ?? 'No department' }}</div>
+                        <div style="font-size:.68rem;color:#aaa">Requested {{ optional($attendance->requested_at)->format('M d, Y h:i A') }}</div>
+                    </div>
+                </div>
+                @if($attendance->status === 'confirmed')
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <span class="badge badge-green">Attended</span>
+                        <span style="font-size:.72rem;font-weight:700;color:#38a169">+{{ $attendance->points_awarded }} pts</span>
+                    </div>
+                @elseif($attendance->status === 'rejected')
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <span class="badge badge-red">Not attended</span>
+                        <span style="font-size:.72rem;font-weight:700;color:#e53e3e">0 pts</span>
+                    </div>
+                @else
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                        <form method="POST" action="{{ route('admin.events.attendances.confirm', [$event, $attendance]) }}">
+                            @csrf
+                            <input type="hidden" name="decision" value="attended">
+                            <button type="submit" title="Attended - award 20 points" style="width:100%;height:36px;border:none;border-radius:8px;background:#38a169;color:#fff;font-size:1rem;font-weight:900;cursor:pointer">
+                                &#10003;
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('admin.events.attendances.confirm', [$event, $attendance]) }}">
+                            @csrf
+                            <input type="hidden" name="decision" value="not_attended">
+                            <button type="submit" title="Not attended - no points" style="width:100%;height:36px;border:none;border-radius:8px;background:#e53e3e;color:#fff;font-size:1rem;font-weight:900;cursor:pointer">
+                                X
+                            </button>
+                        </form>
+                    </div>
+                @endif
+            @empty
+                <div style="padding:18px 0;border-top:1px solid #f0e8e8;color:#999;font-size:.82rem;text-align:center">
+                    No attendance requests yet.
+                </div>
+            @endforelse
+        </div>
         </div>
     </div>
 

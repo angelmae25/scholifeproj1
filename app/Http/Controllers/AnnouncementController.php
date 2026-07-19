@@ -13,7 +13,6 @@ class AnnouncementController extends Controller
     {
         $stats = [
             'published'   => Announcement::where('status', 'live')->count(),
-            'scheduled'   => Announcement::where('status', 'scheduled')->count(),
             'total_views' => Announcement::sum('views'),
         ];
 
@@ -27,22 +26,13 @@ class AnnouncementController extends Controller
         $request->validate([
             'title'        => ['required', 'string', 'max:255'],
             'content'      => ['required', 'string', 'max:5000'],
-            'audience'     => ['required', Rule::in(['All Users', 'Students', 'Professors', 'Offices', 'Org Officers'])],
+            'audience'     => ['required', Rule::in(['All Users', 'Students', 'Professors', 'Offices', 'Org Officers', 'BASD', 'MAAD', 'CAAD', 'EAAD', 'Others'])],
             'category'     => ['nullable', Rule::in(['General', 'Academic', 'Event', 'Emergency', 'Scholarship'])],
             'action'       => ['nullable', Rule::in(['draft', 'publish'])],
-            'publish_type' => ['nullable', Rule::in(['now', 'scheduled'])],
-            'scheduled_at' => ['nullable', 'required_if:publish_type,scheduled', 'date', 'after:now'],
             'attachment'   => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png', 'max:10240'],
         ]);
 
-        // Determine status
-        if ($request->action === 'draft') {
-            $status = 'draft';
-        } elseif ($request->publish_type === 'scheduled') {
-            $status = 'scheduled';
-        } else {
-            $status = 'live';
-        }
+        $status = $request->action === 'draft' ? 'draft' : 'live';
 
         // Handle file upload
         $attachmentPath = null;
@@ -59,8 +49,7 @@ class AnnouncementController extends Controller
             'status'       => $status,
             'views'        => 0,
             'attachment'   => $attachmentPath,
-            'published_at' => ($status === 'live')      ? now() : null,
-            'scheduled_at' => ($status === 'scheduled') ? $request->scheduled_at : null,
+            'published_at' => $status === 'live' ? now() : null,
             'admin_id'     => Auth::guard('admin')->id(),
         ]);
 

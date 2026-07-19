@@ -27,11 +27,6 @@
 <div style="max-width:700px;margin:0 auto">
     <a href="{{ $backUrl }}" style="display:inline-flex;align-items:center;gap:6px;color:#8b1c2c;font-size:.82rem;font-weight:600;text-decoration:none;margin-bottom:20px">&larr; Back</a>
 
-    @if(session('success'))
-        <div style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;font-weight:600">
-            <x-icon name="check-circle" /> {{ session('success') }}
-        </div>
-    @endif
 
     @if($errors->any())
         <div style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.82rem">

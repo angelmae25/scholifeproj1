@@ -11,7 +11,11 @@ class CheckAdminPermission
     {
         $admin = Auth::guard('admin')->user();
 
-        if (!$admin || !$admin->hasPermission($module)) {
+        if (! $admin) {
+            return redirect()->route('admin.login');
+        }
+
+        if (! $admin->hasPermission($module)) {
             abort(403, 'You do not have permission to access this module.');
         }
 

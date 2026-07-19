@@ -135,4 +135,56 @@ class MobilePreLovedItemController extends Controller
             ], 500);
         }
     }
+    public function update(Request $request, PreLovedItem $item)
+    {
+        if ((int) $item->user_id !== (int) $request->user()->id) {
+            return response()->json(['success' => false, 'message' => 'You can only edit your own post.'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'location' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $item->update([
+            'name' => $request->name,
+            'price' => $request->price,
+            'location' => $request->location,
+            'description' => $request->description,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item updated successfully.',
+            'item' => $item->fresh(),
+        ]);
+    }
+
+    public function destroy(Request $request, PreLovedItem $item)
+    {
+        if ((int) $item->user_id !== (int) $request->user()->id) {
+            return response()->json(['success' => false, 'message' => 'You can only delete your own post.'], 403);
+        }
+
+        if ($item->image) {
+            Storage::disk('public')->delete($item->image);
+        }
+
+        $item->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item deleted successfully.',
+        ]);
+    }
 }

@@ -2,18 +2,10 @@
 @section('title','Events')
 @section('content')
 
-    {{-- Success message --}}
-    @if(session('success'))
-        <div style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;font-weight:600">
-            <x-icon name="check-circle" /> {{ session('success') }}
-        </div>
-    @endif
-
     <div class="stat-grid">
         <div class="stat-card"><div class="stat-label">Total Events</div><div class="stat-value">{{ $stats['total_events'] }}</div></div>
-        <div class="stat-card"><div class="stat-label">Total RSVPs</div><div class="stat-value">{{ number_format($stats['total_rsvps']) }}</div></div>
-        <div class="stat-card"><div class="stat-label">Avg Attendance</div><div class="stat-value">{{ $stats['avg_attendance'] }}</div></div>
-        <div class="stat-card"><div class="stat-label">Reminder Sent</div><div class="stat-value">{{ number_format($stats['reminders_sent']) }}</div></div>
+        <div class="stat-card"><div class="stat-label">Total Attendance</div><div class="stat-value">{{ number_format($stats['total_attendance']) }}</div></div>
+        <div class="stat-card"><div class="stat-label">Pending Requests</div><div class="stat-value">{{ number_format($stats['pending_requests']) }}</div></div>
     </div>
 
     <div class="panel">
@@ -25,9 +17,9 @@
             <thead>
             <tr>
                 <th>Event</th>
+                <th>Audience</th>
                 <th>Date</th>
                 <th>Organizer</th>
-                <th>RSVPs</th>
                 <th>Attendance</th>
                 <th>Status</th>
                 <th></th>
@@ -40,10 +32,18 @@
                         <div style="font-weight:700">{{ $event->title }}</div>
                         <div style="font-size:.7rem;color:#999">{{ $event->location }}</div>
                     </td>
+                    <td><span class="badge badge-gray">{{ $event->audience ?? 'All' }}</span></td>
                     <td>{{ $event->event_date->format('M d, Y') }}</td>
                     <td>{{ $event->organizer }}</td>
-                    <td>{{ number_format($event->rsvp_count) }}</td>
-                    <td>{{ $event->attendance_pct }}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                            <span style="font-weight:800;color:#8b1c2c">{{ number_format($event->confirmed_attendance_count ?? $event->attendance_count) }}</span>
+                            <span style="font-size:.7rem;color:#777">confirmed</span>
+                            @if(($event->pending_attendance_count ?? 0) > 0)
+                                <span class="badge badge-yellow">{{ $event->pending_attendance_count }} pending</span>
+                            @endif
+                        </div>
+                    </td>
                     <td>
                     <span class="badge {{
                         $event->status === 'completed' ? 'badge-green'  :
@@ -52,7 +52,28 @@
                     }}">{{ ucfirst($event->status) }}</span>
                     </td>
                     <td>
-                        <a href="{{ route('admin.events.show', $event) }}" class="icon-button" title="View" aria-label="View"><x-icon name="eye" /></a>
+                        <div style="display:flex;gap:6px">
+                            <a href="{{ route('admin.events.show', $event) }}"
+                               style="padding:6px 12px;background:#8b1c2c;color:#fff;border-radius:6px;font-size:.7rem;font-weight:700;text-decoration:none;white-space:nowrap">
+                                MANAGE
+                            </a>
+                            <button type="button"
+                                    onclick="openEditModal({{ $event->id }})"
+                                    style="padding:6px 10px;background:#fff3cd;color:#8b1c2c;border:none;border-radius:6px;font-size:.7rem;font-weight:700;cursor:pointer">
+                                <x-icon name="pencil" />
+                            </button>
+                            <form method="POST" action="{{ route('admin.events.destroy', $event) }}"
+                                  data-confirm-message="Delete this event? This will remove it from both web and mobile."
+                                  data-confirm-action="Delete"
+                                  style="margin:0">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        style="padding:6px 10px;background:#fee2e2;color:#e53e3e;border:none;border-radius:6px;font-size:.7rem;font-weight:700;cursor:pointer">
+                                    <x-icon name="trash" />
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             @empty
@@ -69,7 +90,7 @@
 
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
                 <h2 style="font-size:1.2rem;font-weight:800;color:#8b1c2c">Create Event</h2>
-                <button onclick="closeModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999">→</button>
+                <button onclick="closeModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999">â†’</button>
             </div>
 
             <form method="POST" action="{{ route('admin.events.store') }}" enctype="multipart/form-data">
@@ -80,8 +101,8 @@
                 <input type="text" name="title" placeholder="e.g. Intramural Sports Fest 2026"
                        style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:10px 14px;font-size:.88rem;margin-bottom:14px;outline:none">
 
-                {{-- Event Type & Organizer --}}
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+                {{-- Event Type, Audience & Organizer --}}
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
                     <div>
                         <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Event type</label>
                         <select name="type" style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
@@ -89,6 +110,16 @@
                             <option value="academic">Academic</option>
                             <option value="organization">Organization</option>
                             <option value="online">Online</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Audience</label>
+                        <select name="audience" style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
+                            <option value="All">All</option>
+                            <option value="BASD">BASD</option>
+                            <option value="MAAD">MAAD</option>
+                            <option value="CAAD">CAAD</option>
+                            <option value="EAAD">EAAD</option>
                         </select>
                     </div>
                     <div>
@@ -137,23 +168,11 @@
                     <input type="file" name="image" accept="image/*" style="display:none" onchange="previewEventImage(this)">
                 </label>
 
-                {{-- Max attendees, RSVP deadline, Points --}}
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-                    <div>
-                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Max attendees</label>
-                        <input type="number" name="max_attendees" placeholder="e.g. 500"
-                               style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
-                    </div>
-                    <div>
-                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">RSVP deadline</label>
-                        <input type="date" name="rsvp_deadline"
-                               style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.82rem;outline:none">
-                    </div>
-                    <div>
-                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Points awarded</label>
-                        <input type="number" name="points_awarded" placeholder="e.g 50"
-                               style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
-                    </div>
+                {{-- Points awarded --}}
+                <div style="margin-bottom:14px">
+                    <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Points awarded</label>
+                    <input type="number" name="points_awarded" placeholder="e.g 50"
+                           style="width:100%;max-width:200px;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
                 </div>
 
                 {{-- Reminders --}}
@@ -184,7 +203,127 @@
         </div>
     </div>
 
+    {{-- EDIT EVENT MODAL --}}
+    <div id="editEventModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:14px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:28px 32px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+                <h2 style="font-size:1.2rem;font-weight:800;color:#8b1c2c">Edit Event</h2>
+                <button onclick="closeEditModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999">Ã—</button>
+            </div>
+            <form id="editEventForm" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="event_id" id="editEventId">
+
+                <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Event Name</label>
+                <input type="text" name="title" id="editTitle"
+                       style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:10px 14px;font-size:.88rem;margin-bottom:14px;outline:none">
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+                    <div>
+                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Event type</label>
+                        <select name="type" id="editType"
+                                style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
+                            <option value="on_campus">On-campus</option>
+                            <option value="academic">Academic</option>
+                            <option value="organization">Organization</option>
+                            <option value="online">Online</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Audience</label>
+                        <select name="audience" id="editAudience"
+                                style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
+                            <option value="All">All</option>
+                            <option value="BASD">BASD</option>
+                            <option value="MAAD">MAAD</option>
+                            <option value="CAAD">CAAD</option>
+                            <option value="EAAD">EAAD</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Organizer</label>
+                        <input type="text" name="organizer" id="editOrganizer"
+                               style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+                    <div>
+                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Start date &amp; time</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                            <input type="date" name="event_date" id="editEventDate"
+                                   style="border:1.5px solid #c9999f;border-radius:8px;padding:8px 10px;font-size:.82rem;outline:none">
+                            <input type="time" name="event_time" id="editEventTime"
+                                   style="border:1.5px solid #c9999f;border-radius:8px;padding:8px 10px;font-size:.82rem;outline:none">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">End date &amp; time</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                            <input type="date" name="end_date" id="editEndDate"
+                                   style="border:1.5px solid #c9999f;border-radius:8px;padding:8px 10px;font-size:.82rem;outline:none">
+                            <input type="time" name="end_time" id="editEndTime"
+                                   style="border:1.5px solid #c9999f;border-radius:8px;padding:8px 10px;font-size:.82rem;outline:none">
+                        </div>
+                    </div>
+                </div>
+
+                <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Venue / location</label>
+                <input type="text" name="location" id="editLocation"
+                       style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:10px 14px;font-size:.88rem;margin-bottom:14px;outline:none">
+
+                <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Description</label>
+                <textarea name="description" id="editDescription" rows="4"
+                          style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:10px 14px;font-size:.85rem;outline:none;resize:vertical;font-family:inherit;margin-bottom:14px"></textarea>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+                    <div>
+                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Status</label>
+                        <select name="status" id="editStatus"
+                                style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none;background:#fff">
+                            <option value="upcoming">Upcoming</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px">Points awarded</label>
+                        <input type="number" name="points_awarded" id="editPoints"
+                               style="width:100%;border:1.5px solid #c9999f;border-radius:8px;padding:9px 12px;font-size:.85rem;outline:none">
+                    </div>
+                </div>
+
+                <label style="font-size:.7rem;font-weight:700;color:#8b1c2c;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:8px">Reminders</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+                    <label style="display:flex;align-items:center;gap:8px;background:#fff8f8;border:1.5px solid #f0d0d4;border-radius:8px;padding:10px 14px;cursor:pointer;font-size:.82rem;color:#555">
+                        <input type="checkbox" name="remind_1day" id="editRemind1day" style="accent-color:#8b1c2c;width:14px;height:14px">
+                        Remind 1 day before
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;background:#fff8f8;border:1.5px solid #f0d0d4;border-radius:8px;padding:10px 14px;cursor:pointer;font-size:.82rem;color:#555">
+                        <input type="checkbox" name="remind_1hour" id="editRemind1hour" style="accent-color:#8b1c2c;width:14px;height:14px">
+                        Remind 1 hour before
+                    </label>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px">
+                    <button type="button" onclick="closeEditModal()"
+                            style="padding:9px 18px;border:1.5px solid #ccc;background:#fff;color:#666;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            style="padding:9px 20px;background:#8b1c2c;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
+                        <x-icon name="pencil" /> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        let eventsData = @json($events->items());
+
         function openModal() {
             document.getElementById('eventModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -207,6 +346,37 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
+        function openEditModal(id) {
+            const event = eventsData.find(e => e.id === id);
+            if (!event) return;
+
+            document.getElementById('editEventForm').action = '{{ url("admin/events") }}/' + id;
+            document.getElementById('editTitle').value = event.title || '';
+            document.getElementById('editType').value = event.type || 'on_campus';
+            document.getElementById('editOrganizer').value = event.organizer || '';
+            document.getElementById('editEventDate').value = event.event_date ? event.event_date.split('T')[0] : '';
+            document.getElementById('editEventTime').value = event.event_time || '';
+            document.getElementById('editEndDate').value = event.end_date ? event.end_date.split('T')[0] : '';
+            document.getElementById('editEndTime').value = event.end_time || '';
+            document.getElementById('editLocation').value = event.location || '';
+            document.getElementById('editDescription').value = event.description || '';
+            document.getElementById('editAudience').value = event.audience || 'All';
+            document.getElementById('editStatus').value = event.status || 'upcoming';
+            document.getElementById('editPoints').value = event.points_awarded || 0;
+            document.getElementById('editRemind1day').checked = !!event.remind_1day;
+            document.getElementById('editRemind1hour').checked = !!event.remind_1hour;
+
+            document.getElementById('editEventModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeEditModal() {
+            document.getElementById('editEventModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        document.getElementById('editEventModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
     </script>
 
 @endsection

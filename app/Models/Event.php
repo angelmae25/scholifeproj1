@@ -16,11 +16,9 @@ class Event extends Model
         'location',
         'type',
         'status',
-        'rsvp_count',
+        'audience',
         'attendance_count',
         'reminders_sent',
-        'max_attendees',
-        'rsvp_deadline',
         'points_awarded',
         'remind_1day',
         'remind_1hour',
@@ -35,19 +33,41 @@ class Event extends Model
     protected $casts = [
         'event_date'   => 'date',
         'end_date'     => 'date',
-        'rsvp_deadline'=> 'date',
         'remind_1day'  => 'boolean',
         'remind_1hour' => 'boolean',
     ];
 
+    public function setAudienceAttribute($value): void
+    {
+        $audience = trim((string) $value);
+
+        if ($audience === '' || in_array(strtolower($audience), ['all', 'all users', 'students', 'students only', 'others', 'null'], true)) {
+            $this->attributes['audience'] = null;
+            return;
+        }
+
+        $allowed = ['BASD', 'MAAD', 'CAAD', 'EAAD'];
+        foreach ($allowed as $option) {
+            if (strcasecmp($audience, $option) === 0) {
+                $this->attributes['audience'] = $option;
+                return;
+            }
+        }
+
+        $this->attributes['audience'] = null;
+    }
     public function admin()
     {
         return $this->belongsTo(Admin::class);
     }
 
+    public function attendances()
+    {
+        return $this->hasMany(EventAttendance::class);
+    }
+
     public function getAttendancePctAttribute(): string
     {
-        if (!$this->rsvp_count) return '0%';
-        return round(($this->attendance_count / $this->rsvp_count) * 100) . '%';
+        return '0%';
     }
 }

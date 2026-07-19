@@ -12,9 +12,8 @@ class AcademicNoticeController extends Controller
     public function index()
     {
         $stats = [
-            'posted'           => AcademicNotice::where('status','published')->count(),
+            'posted'           => AcademicNotice::where('status', '!=', 'draft')->orWhereNull('status')->count(),
             'dept_active'      => AcademicNotice::distinct('department')->count('department'),
-            'pending_approval' => AcademicNotice::where('status','pending')->count(),
         ];
         $notices = AcademicNotice::latest()->paginate(20);
         return view('Admin.academic-notices.index', compact('stats','notices'));
@@ -29,15 +28,12 @@ class AcademicNoticeController extends Controller
             'audience'           => ['nullable', 'string', 'max:255'],
             'content'            => ['required', 'string', 'max:5000'],
             'action'             => ['nullable', Rule::in(['draft', 'submit'])],
-            'publish_preference' => ['nullable', Rule::in(['after_approval', 'scheduled', 'draft'])],
-            'scheduled_at'       => ['nullable', 'date', 'after:now'],
-            'expires_at'         => ['nullable', 'date', 'after:now'],
             'tags'               => ['nullable', 'array'],
             'tags.*'             => ['string', 'max:50'],
             'attachment'         => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png', 'max:10240'],
         ]);
 
-        $status = $request->action === 'draft' ? 'draft' : 'pending';
+        $status = $request->action === 'draft' ? 'draft' : 'published';
 
         // Handle attachment
         $attachmentPath = null;
@@ -61,7 +57,7 @@ class AcademicNoticeController extends Controller
         LogActivity::log('CREATE', 'Academic Notices', 'Posted notice: ' . $request->title);
 
         return redirect()->route('admin.academic-notices')
-            ->with('success', 'Notice ' . $status . ' successfully!');
+            ->with('success', $status === 'published' ? 'Notice published successfully!' : 'Notice saved as draft!');
     }
 
     public function show(AcademicNotice $academicNotice)
@@ -94,3 +90,5 @@ class AcademicNoticeController extends Controller
         return back()->with('success', 'Notice approved and published!');
     }
 }
+
+

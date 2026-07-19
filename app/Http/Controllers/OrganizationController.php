@@ -44,7 +44,7 @@ class OrganizationController extends Controller
             'type'         => ['required', Rule::in(['academic', 'civic', 'cultural', 'sports', 'governance', 'other'])],
             'adviser'      => ['nullable', 'string', 'max:255'],
             'co_adviser'   => ['nullable', 'string', 'max:255'],
-            'department'   => ['nullable', 'string', 'max:255'],
+            'department'   => ['required', Rule::in(['BASD', 'CAAD', 'EAAD', 'MAAD'])],
             'year_founded' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
         ]);
 
@@ -77,6 +77,7 @@ class OrganizationController extends Controller
     {
         $users     = User::whereIn('role',['student','org_officer'])
             ->where('status', 'active')
+            ->where('department', $organization->department)
             ->orderBy('name')
             ->get();
         $officials = OrganizationMember::with('user')
@@ -108,7 +109,7 @@ class OrganizationController extends Controller
             'type'         => ['required', Rule::in(['academic', 'civic', 'cultural', 'sports', 'governance', 'other'])],
             'adviser'      => ['nullable', 'string', 'max:255'],
             'co_adviser'   => ['nullable', 'string', 'max:255'],
-            'department'   => ['nullable', 'string', 'max:255'],
+            'department'   => ['required', Rule::in(['BASD', 'CAAD', 'EAAD', 'MAAD'])],
             'year_founded' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
             'status'       => ['required', Rule::in(['active', 'inactive', 'pending'])],
         ]);
@@ -170,6 +171,12 @@ class OrganizationController extends Controller
             'role'    => ['required', Rule::in(self::OFFICER_ROLES)],
         ]);
 
+        $student = User::findOrFail($request->user_id);
+
+        if ($organization->department && $student->department !== $organization->department) {
+            return back()->with('error', 'Student must belong to ' . $organization->department . ' to be assigned here.');
+        }
+
         $member = DB::transaction(function () use ($request, $organization) {
             OrganizationMember::where('organization_id', $organization->id)
                 ->where(function ($query) use ($request) {
@@ -213,4 +220,5 @@ class OrganizationController extends Controller
         return back()->with('success', 'Official removed!');
     }
 }
+
 

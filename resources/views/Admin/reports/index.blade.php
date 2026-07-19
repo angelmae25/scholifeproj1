@@ -5,7 +5,7 @@
     <div class="stat-grid">
         <div class="stat-card"><div class="stat-label">Open Reports</div><div class="stat-value">{{ $stats['open'] }}</div></div>
         <div class="stat-card"><div class="stat-label">Resolved This Week</div><div class="stat-value">{{ $stats['resolved_this_week'] }}</div></div>
-        <div class="stat-card"><div class="stat-label">Avg Resolution</div><div class="stat-value">{{ $stats['avg_resolution'] }}</div></div>
+
         <div class="stat-card"><div class="stat-label">Violation Issue</div><div class="stat-value">{{ $stats['violation_issues'] }}</div></div>
     </div>
 
@@ -33,7 +33,7 @@
                         <span class="badge badge-yellow">{{ ucfirst($report->status) }}</span>
                     </div>
                     <div style="font-size:0.72rem;color:#999;margin-top:4px;">
-                        {{ $report->type }} · Submitted by {{ optional($report->user)->name ?? 'Mobile User' }} · {{ $report->created_at->format('M d, Y h:i A') }}
+                        {{ $report->type }} ï¿½ Submitted by {{ optional($report->user)->name ?? 'Mobile User' }} ï¿½ {{ $report->created_at->format('M d, Y h:i A') }}
                     </div>
                     <div style="font-size:0.78rem;color:#555;margin-top:7px;line-height:1.4;">
                         {{ \Illuminate\Support\Str::limit($report->description, 180) }}
@@ -41,6 +41,17 @@
                 </div>
 
                 <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;">
+                    @if($report->status !== 'resolved')
+                        <form method="POST" action="{{ route('admin.reports.resolve', $report) }}"
+                              data-confirm-message="Mark this report as resolved?"
+                              data-confirm-action="Resolve"
+                              style="margin:0">
+                            @csrf @method('PATCH')
+                            <button type="submit" title="Mark as resolved" style="padding:6px;background:#d4edda;color:#155724;border:none;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;">
+                                <x-icon name="check-circle" size="18" />
+                            </button>
+                        </form>
+                    @endif
                     <a href="{{ route('admin.reports.show', $report) }}" title="View report" style="color:#8b1c2c;font-size:1.1rem;display:inline-flex;align-items:center;text-decoration:none;"><x-icon name="eye" /></a>
                     <a href="{{ route('admin.reports.download', $report) }}" style="border:1px solid #8b1c2c;color:#8b1c2c;border-radius:6px;padding:7px 10px;font-size:0.74rem;font-weight:700;text-decoration:none;">Download Word</a>
                 </div>

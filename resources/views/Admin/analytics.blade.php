@@ -27,11 +27,11 @@
 
     <div class="two-col">
         <div class="panel">
-            <div class="panel-header"><span class="panel-title">Engagement by Feature</span></div>
+            <div class="panel-header"><span class="panel-title">Records by Feature</span></div>
             @php $maxEng = max(array_values($engagement)) ?: 1; @endphp
             @foreach($engagement as $feature => $count)
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-                    <span style="width:120px;font-size:0.82rem;">{{ $feature }}</span>
+                    <span style="width:150px;font-size:0.82rem;">{{ $feature }}</span>
                     <div style="flex:1;background:#f5eaea;border-radius:20px;height:14px;">
                         <div style="background:#8b1c2c;height:14px;border-radius:20px;width:{{ max(4, ($count / $maxEng) * 100) }}%;"></div>
                     </div>

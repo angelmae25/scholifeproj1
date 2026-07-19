@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\MobileLeaderboardController;
 use App\Http\Controllers\Api\MobileReportController;
 use App\Http\Controllers\Api\MobileProfileController;
 use App\Http\Controllers\Api\MobileOrganizationEvaluationController;
+use App\Http\Controllers\Api\MobileAcademicNoticeController;
 
 Route::post('/mobile/register', [MobileAuthController::class, 'register']);
 Route::post('/mobile/login', [MobileAuthController::class, 'login']);
@@ -22,6 +23,8 @@ Route::get('/mobile/organizations/{organization}', [MobileOrganizationController
 Route::get('/mobile/organizations/{organization}/evaluation', [MobileOrganizationEvaluationController::class, 'show']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/mobile/pre-loved-items', [MobilePreLovedItemController::class, 'store']);
+    Route::put('/mobile/pre-loved-items/{item}', [MobilePreLovedItemController::class, 'update']);
+    Route::delete('/mobile/pre-loved-items/{item}', [MobilePreLovedItemController::class, 'destroy']);
     Route::get('/mobile/pre-loved-messages', [MobilePreLovedMessageController::class, 'conversations']);
     Route::get('/mobile/pre-loved-items/{item}/messages', [MobilePreLovedMessageController::class, 'index']);
     Route::post('/mobile/pre-loved-items/{item}/messages', [MobilePreLovedMessageController::class, 'store']);
@@ -30,11 +33,20 @@ Route::get('/mobile/lost-found-items', [MobileLostFoundController::class, 'index
 Route::get('/mobile/leaderboard', [MobileLeaderboardController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/mobile/academic-notices', [MobileAcademicNoticeController::class, 'index']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
     Route::post('/mobile/lost-found-items/{item}/claim', [MobileLostFoundController::class, 'claim']);
     Route::post('/mobile/lost-found-items', [MobileLostFoundController::class, 'store']);
+    Route::put('/mobile/lost-found-items/{item}', [MobileLostFoundController::class, 'update']);
+    Route::delete('/mobile/lost-found-items/{item}', [MobileLostFoundController::class, 'destroy']);
     Route::post('/mobile/news', [MobileNewsController::class, 'store']);
     Route::post('/mobile/news/{announcement}/view', [MobileNewsController::class, 'view']);
     Route::post('/mobile/events', [MobileEventController::class, 'store']);
+    Route::post('/mobile/events/{event}/attend', [MobileEventController::class, 'attend']);
+    Route::get('/mobile/events/{event}/attendances', [MobileEventController::class, 'attendances']);
+    Route::post('/mobile/events/{event}/attendances/{attendance}/confirm', [MobileEventController::class, 'confirmAttendance']);
     Route::post('/mobile/events/{event}/view', [MobileEventController::class, 'view']);
     Route::get('/mobile/students', [MobileOrganizationController::class, 'students']);
     Route::post('/mobile/organizations/{organization}/assign-role', [MobileOrganizationController::class, 'assignRole']);

@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeaders::class,
         ]);
 
+        $middleware->redirectGuestsTo(function (Request $request) {
+            return $request->is('admin/*') ? route('admin.login') : null;
+        });
+
         $middleware->alias([
             'admin.permission' => \App\Http\Middleware\CheckAdminPermission::class,
         ]);

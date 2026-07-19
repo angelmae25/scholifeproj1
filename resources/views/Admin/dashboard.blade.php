@@ -74,14 +74,8 @@
                 </span>
                     </div>
                     <div style="text-align:right;font-size:.75rem">
-                        <div style="font-weight:800;color:#8b1c2c">{{ number_format($event->rsvp_count) }}</div>
-                        <div style="color:#999">RSVPs</div>
-                        @if($event->rsvp_count > 0)
-                            <div style="background:#f5eaea;border-radius:20px;height:4px;width:60px;margin-top:4px">
-                                <div style="background:#8b1c2c;height:4px;border-radius:20px;width:{{ $event->attendance_pct }}"></div>
-                            </div>
-                            <div style="color:#999;font-size:.65rem">{{ $event->attendance_pct }} capacity</div>
-                        @endif
+                        <div style="font-weight:800;color:#8b1c2c">{{ $event->attendance_count }}</div>
+                        <div style="color:#999">Attended</div>
                     </div>
                 </div>
             @empty

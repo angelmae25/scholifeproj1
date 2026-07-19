@@ -59,4 +59,34 @@ class PointsController extends Controller
         return redirect()->route('admin.points')
             ->with('success', 'Point rule added!');
     }
+
+    public function updateRule(Request $request, PointRule $pointRule)
+    {
+        $request->validate([
+            'name'        => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'points'      => ['required', 'integer', 'min:1', 'max:100000'],
+        ]);
+
+        $pointRule->update([
+            'name'        => $request->name,
+            'description' => $request->description ?? null,
+            'points'      => (int) $request->points,
+        ]);
+
+        LogActivity::log('UPDATE', 'Points', 'Updated rule: ' . $request->name);
+
+        return redirect()->route('admin.points')
+            ->with('success', 'Point rule updated!');
+    }
+
+    public function destroyRule(PointRule $pointRule)
+    {
+        LogActivity::log('DELETE', 'Points', 'Deleted rule: ' . $pointRule->name);
+
+        $pointRule->delete();
+
+        return redirect()->route('admin.points')
+            ->with('success', 'Point rule deleted!');
+    }
 }

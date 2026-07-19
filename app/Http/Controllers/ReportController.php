@@ -11,14 +11,23 @@ class ReportController extends Controller {
             'open'               => Report::where('status','open')->count(),
             'resolved_this_week' => Report::where('status','resolved')
                 ->whereBetween('resolved_at',[now()->startOfWeek(),now()])->count(),
-            'avg_resolution'     => '3.2h',
-            'violation_issues'   => Report::where('priority','high')->where('status','open')->count(),
+            'violation_issues'   => Report::where('type','violation')->count(),
         ];
         $reports = Report::with('user')
             ->orderByRaw("FIELD(priority,'high','medium','low')")
             ->latest()
             ->paginate(20);
         return view('admin.reports.index', compact('stats','reports'));
+    }
+
+    public function resolve(Report $report) {
+        $report->update([
+            'status'      => 'resolved',
+            'resolved_at' => now(),
+        ]);
+
+        return redirect()->route('admin.reports')
+            ->with('success', 'Report #' . $report->id . ' marked as resolved.');
     }
 
     public function show(Report $report) {
